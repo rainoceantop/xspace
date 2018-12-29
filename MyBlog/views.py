@@ -57,6 +57,8 @@ class BlogGet(View):
                 'created_at': ct.convertDatetime(blog.created_at),
                 'author': redis.hget(redis_blog_user_key, 'nickname').decode(),
                 'author_avatar': redis.hget(redis_blog_user_key, 'avatar').decode(),
+                'author_follows': redis.scard("user:{}:follows".format(blog.author_id)),
+                'author_fans': redis.scard("user:{}:fans".format(blog.author_id)),
                 'replies_count': blog.replies.count(),
                 'likes': redis.scard('blog:{}:likes'.format(blog.id)),
                 'liked': redis.sismember('blog:{}:likes'.format(blog.id), request.user.id) if request.user.is_authenticated else False

@@ -8,10 +8,11 @@ from django.core.files.storage import FileSystemStorage
 import json
 import re
 import os
+import time
 from django.core import exceptions
 from MyHome.utils import get_redis
 from qiniu import Auth as qiniu_auth
-from qiniu import put_file, etag, BucketManager
+from qiniu import put_file, etag, BucketManager, CdnManager
 import qiniu.config
 
 
@@ -174,59 +175,66 @@ class ChangePassword(View):
 
 class ChangeAvatar(View):
     def post(self, request):
-        # return JsonResponse({'id': request.user.id})
-
         if not request.user.is_authenticated:
             return JsonResponse({'code': 7, 'msg': '请先登录'})
 
-        # avatar_file = request.FILES.get('avatar')
-        # if not avatar_file:
-        #     return JsonResponse({'code': 2, 'msg': '请选择需要上传的图片'})
+        avatar_file = request.FILES.get('avatar')
+        if not avatar_file:
+            return JsonResponse({'code': 2, 'msg': '请选择需要上传的图片'})
 
-        return JsonResponse({'id': request.FILES.get('avatar') is None})
+        allow_types = ['image/jpeg', 'image/png', 'image/gif']
 
-        # allow_types = ['image/jpeg', 'image/png', 'image/gif']
+        if avatar_file.content_type not in allow_types:
+            return JsonResponse({'code': 3, 'msg': '上传失败，文件类型错误'})
 
-        # if avatar_file.content_type not in allow_types:
-        #     return JsonResponse({'code': 3, 'msg': '上传失败，文件类型错误'})
+        file_name = '{}_avatar_{}_{}'.format(
+            request.user.id, time.time(), avatar_file.name)
+        fs = FileSystemStorage()
+        fs.save(file_name, avatar_file)
+        file_path = os.path.join(
+            os.getcwd(), 'media', file_name).replace('\\', '/')
 
-        # file_name = '{}_avatar'.format(request.user.id)
-        # fs = FileSystemStorage()
-        # fs.save(file_name, avatar_file)
-        # file_path = os.path.join(
-        #     os.getcwd(), 'media', file_name).replace('\\', '/')
+        access_key = 'M2TrolxfManTFNP4Clr3M12JW0tvAaCV0xIbrZk5'
+        secret_key = 'Llh0byt0KDHwiFlcNVvPiTpQSrH8IrZSt5puu1zS'
 
-        # access_key = 'M2TrolxfManTFNP4Clr3M12JW0tvAaCV0xIbrZk5'
-        # secret_key = 'Llh0byt0KDHwiFlcNVvPiTpQSrH8IrZSt5puu1zS'
+        q = qiniu_auth(access_key, secret_key)
+        bucket_name = 'avatar'
+        redis = get_redis()
 
-        # q = qiniu_auth(access_key, secret_key)
-        # bucket_name = 'avatar'
-        # redis = get_redis()
+        try:
+            token = q.upload_token(bucket_name, file_name, 3600)
+            ret, info = put_file(token, file_name, file_path)
+            assert ret['key'] == file_name
+            assert ret['hash'] == etag(file_path)
+        except Exception as e:
+            return JsonResponse({'code': 4, 'msg': '上传文件出错'})
+        finally:
+            # 删除本地
+            fs.delete(file_name)
+            # 删除以前头像地址
+            used_avatar = redis.hget('user:{}:detail'.format(
+                request.user.id), 'avatar').decode()
 
-        # try:
-        #     token = q.upload_token(bucket_name, file_name, 3600)
-        #     ret, info = put_file(token, file_name, file_path)
-        #     assert ret['key'] == file_name
-        #     assert ret['hash'] == etag(file_path)
-        # except Exception as e:
-        #     return JsonResponse({'code': 4, 'msg': '上传文件出错'})
-        # finally:
-        #     # 删除本地
-        #     fs.delete(file_name)
-        #     # 删除以前的头像
-        #     used_avatar = redis.hget('user:{}:detail'.format(
-        #         request.user.id), 'avatar').decode()
-        #     if used_avatar != 'http://pkfzvu3bh.bkt.clouddn.com/default.jpg':
-        #         try:
-        #             ret, info = bucket.delete(bucket_name, used_avatar)
-        #             assert ret == {}
-        #         except Exception as e:
-        #             return JsonResponse({'code': 5, 'msg': '删除失败，找不到该文件'})
-        #     # 更新头像地址
-        #     url = 'http://pkfzvu3bh.bkt.clouddn.com/{}'.format(file_name)
-        #     redis.hset('user:{}:detail'.format(
-        #         request.user.id), {'avatar': url})
-        #     return JsonResponse({'code': 1, 'url': url})
+            if used_avatar != 'http://pkfzvu3bh.bkt.clouddn.com/default.jpg':
+                try:
+                    bucket = BucketManager(q)
+                    key = os.path.basename(used_avatar)
+                    ret, info = bucket.delete(bucket_name, key)
+                    assert ret == {}
+                except Exception as e:
+                    pass
+
+            # 更新头像地址
+            url = 'http://pkfzvu3bh.bkt.clouddn.com/{}'.format(file_name)
+            redis.hset('user:{}:detail'.format(
+                request.user.id), 'avatar', url)
+
+            # 刷新缓存
+            cdn_manager = CdnManager(q)
+            urls = [url]
+            cdn_manager.refresh_urls(urls)
+
+            return JsonResponse({'code': 1, 'msg': url})
 
 
 class GetUpdateData(View):

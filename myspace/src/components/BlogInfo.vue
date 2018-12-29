@@ -36,7 +36,7 @@
             </div>
             <div>
               <p id="author-name">{{ blog.author }}</p>
-              <p id="author-follows">0关注·50粉丝</p>
+              <p id="author-follows">{{ blog.author_follows }}关注·{{ blog.author_fans }}粉丝</p>
             </div>
           </div>
         </aside>
