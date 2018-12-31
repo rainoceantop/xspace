@@ -448,6 +448,7 @@ export default {
 }
 .left-viewer {
   width: calc(100% - 25em - 1.5em);
+  height: 100%;
   position: absolute;
   top: 0;
   left: 0;
@@ -535,6 +536,7 @@ export default {
 
 .fullscreen {
   width: 100%;
+  height: 100%;
 }
 
 .test {

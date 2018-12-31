@@ -5,6 +5,7 @@ import Login from './views/Login'
 import store from './store'
 import CheckStatus from './views/CheckStatus'
 import BlogInfo from './components/BlogInfo'
+import imageInfo from './components/ImageInfo'
 import BlogCreate from './components/BlogCreate'
 import ImageCreate from './components/ImageCreate'
 import ProfileEdit from './views/ProfileEdit'
@@ -37,6 +38,14 @@ const router = new Router({
           name: 'blogInfo',
           components: {
             leftView: BlogInfo
+          },
+          props: { leftView: true },
+        },
+        {
+          path: 'image/:imageid',
+          name: 'imageInfo',
+          components: {
+            leftView: imageInfo
           },
           props: { leftView: true },
         },

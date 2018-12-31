@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from base64 import urlsafe_b64encode
 
 # Create your models here.
 

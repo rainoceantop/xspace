@@ -1,11 +1,18 @@
 <template>
   <div class="info">
-    <div class="image"></div>
+    <div class="photo"></div>
     <div class="caption">
       <p>晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多晚上好，卡西莫多</p>
     </div>
   </div>
 </template>
+
+<script>
+export default {
+  props: ["imageid"]
+};
+</script>
+
 
 
 <style lang="scss" scoped>
@@ -13,7 +20,7 @@
 .info {
   width: 100%;
   height: 100%;
-  .image {
+  .photo {
     width: 100%;
     height: 100%;
     background-image: url("../assets/images/sunset.jpg");
