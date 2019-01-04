@@ -1,5 +1,7 @@
 import time
 from django_redis import get_redis_connection
+import uuid
+from base64 import urlsafe_b64encode
 
 
 class ConvertTime:
@@ -34,3 +36,9 @@ class ConvertTime:
 
 def get_redis():
     return get_redis_connection('default')
+
+
+def get_uuid_base64():
+    u = uuid.uuid4()
+    b = urlsafe_b64encode(u.bytes).decode().replace('=', '')
+    return b

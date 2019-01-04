@@ -1,7 +1,10 @@
 <template>
   <div>
     <p>
-      <span class="reply-user-name">{{ reply.from_user_nickname }}</span>
+      <router-link
+        class="reply-user-name"
+        :to="{name: 'myspace', params: {id: reply.from_user_id}}"
+      >{{ reply.from_user_nickname }}</router-link>
       <span class="reply-time">{{ reply.created_at }}</span>
     </p>
     <p class="reply-body">{{ reply.body }}</p>

@@ -32,6 +32,7 @@ export default {
   name: "BlogCreate",
   data: function() {
     return {
+      prevUrl: "",
       title: "",
       editorData: "",
       editor: ClassicEditor,
@@ -117,22 +118,31 @@ export default {
 </script>
 <style lang="scss" scoped>
 @import "../assets/scss/var";
-
+.container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
 .blog-create-wrap {
   width: 70%;
   padding: 2em 5em;
   // background-color: yellowgreen;
   text-align: start;
-  margin-top: 100px;
+  margin-top: 3em;
+
   margin-bottom: 100px;
   border: 1px $gray solid;
   box-shadow: 5px 8px 15px rgba(0, 0, 0, 0.3);
 
   .title-area,
-  .body-area,
-  .button-area {
+  .body-area {
     width: 100%;
     margin-bottom: 25px;
+  }
+  .buttons-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   #title {

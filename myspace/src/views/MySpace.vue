@@ -1,5 +1,5 @@
 <template>
-  <div class="wrap">
+  <div>
     <section :class="['right-panel',open?'':'hide']">
       <header>
         <div id="user-detail">
@@ -15,8 +15,12 @@
               >{{ followed ? '已关注' : '关注' }}</span>
             </p>
             <p id="ff">
-              <strong>{{ follows }}</strong>&nbsp;关注 ·
-              <strong>{{ fans }}</strong>&nbsp;粉丝
+              <span class="ff" @click="currentThumbnail = 'Follows'">
+                <strong>{{ follows }}</strong>&nbsp;关注
+              </span> ·
+              <span class="ff" @click="currentThumbnail = 'Fans'">
+                <strong>{{ fans }}</strong>&nbsp;粉丝
+              </span>
             </p>
             <p id="bio" v-html="bio"></p>
             <p v-if="website.length > 0" id="website">
@@ -28,25 +32,23 @@
       <article id="channel" class="animated fadeIn">
         <div v-if="isSelf" class="new" :style="newopenstyle">
           <div class="new-icon" id="new-button-icon" @click="toggleNew"></div>
-          <router-link
+          <!-- <router-link
             class="new-icon animated fadeIn"
             id="new-photo-icon"
             v-show="newopen"
             :to="{name: 'imageCreate'}"
-          ></router-link>
+          ></router-link>-->
           <router-link
             class="new-icon animated fadeIn"
             id="new-blog-icon"
             v-show="newopen"
             @click.native="blogCreate()"
-            :to="{name: 'blogCreate'}"
+            :to="{name: 'blogCreate', params: {id: undefined}}"
           ></router-link>
         </div>
         <div class="app-icons" id="photo-icon" @click="currentThumbnail = 'ImageThumbnail'"></div>
         <div class="app-icons" id="blog-icon" @click="currentThumbnail = 'BlogThumbnail'"></div>
         <div class="app-icons" id="diary-icon"></div>
-        <div class="app-icons" id="photo-icon"></div>
-        <div class="app-icons" id="photo-icon"></div>
       </article>
       <keep-alive>
         <component
@@ -54,6 +56,7 @@
           v-on:showLeft="l_show=true"
           :blogs="blogs"
           :onfocus="blogid"
+          :uid="cid"
         ></component>
       </keep-alive>
     </section>
@@ -62,8 +65,14 @@
         <font-awesome-icon @click="l_show=false" :icon="['fas', 'times-circle']" size="2x"></font-awesome-icon>
       </div>
       <div class="inner">
-        <router-link class="nav-next" :to="{name: 'blogInfo', params: {blogid: nextblogid}}"></router-link>
-        <router-link class="nav-prev" :to="{name: 'blogInfo', params: {blogid: prevblogid}}"></router-link>
+        <!-- <router-link
+          class="nav-next"
+          :to="{name: 'blogInfo', params: {id:undefined, blogid: nextblogid}}"
+        ></router-link>
+        <router-link
+          class="nav-prev"
+          :to="{name: 'blogInfo', params: {id:undefined, blogid: prevblogid}}"
+        ></router-link>-->
         <div :class="[open?'close-icon':'open-icon']" @click="toggle"></div>
       </div>
       <div class="content animated fadeIn">
@@ -83,24 +92,21 @@
 <script>
 import BlogThumbnail from "@/components/BlogThumbnail";
 import ImageThumbnail from "@/components/ImageThumbnail";
-import ImageInfo from "@/components/ImageInfo";
-import BlogInfo from "@/components/BlogInfo";
-import ImageCreate from "@/components/ImageCreate";
-import BlogCreate from "@/components/BlogCreate";
+import Fans from "@/components/Fans";
+import Follows from "@/components/Follows";
 
 export default {
   name: "MySpace",
   components: {
     BlogThumbnail,
     ImageThumbnail,
-    ImageInfo,
-    BlogInfo,
-    ImageCreate,
-    BlogCreate
+    Fans,
+    Follows
   },
   data() {
     return {
       // 用户信息
+      cid: "", //当前面板用户id
       nickname: "",
       bio: "",
       website: "",
@@ -133,7 +139,7 @@ export default {
     else if (h >= 14 && h < 19) this.greetings = "下午好";
     else this.greetings = "晚上好";
 
-    this.$store.dispatch("checkLogin");
+    this.cid = this.id;
     this.init();
   },
   props: ["id", "blogid"],
@@ -146,7 +152,9 @@ export default {
     getUserDetail() {
       this.$axios
         .get(
-          `http://192.168.1.7:8000/api/homespace/getUserDetail?uid=${this.id}`
+          `http://192.168.1.7:8000/api/homespace/getUserDetail?username=${
+            this.id
+          }`
         )
         .then(response => {
           if (response.data.code === 1) {
@@ -229,37 +237,51 @@ export default {
     getBlogSet: function() {
       // 获取博客
       this.$axios
-        .get(`http://192.168.1.7:8000/api/blog/${this.id}/blogset`)
+        .get(`http://192.168.1.7:8000/api/blog/${this.cid}/blogset`)
         .then(response => {
           if (response.data.code === 1) {
             this.blogs = response.data.msg;
-            if (this.iscreate) {
-              if (this.blogs[0].id !== undefined) {
-                if (!this.blogid) {
-                  this.showBlog(this.blogs[0].id);
-                }
-                this.countBlogPN(this.blogid);
-              }
-            }
+            // if (this.iscreate) {
+            //   if (this.blogs[0].id !== undefined) {
+            //     if (!this.blogid) {
+            //       this.showBlog(this.blogs[0].id);
+            //     }
+            //     this.countBlogPN(this.blogid);
+            //   }
+            // }
           } else {
             this.blogs = [];
           }
         });
     },
-    blogCreateDone: function(id) {
-      this.getBlogSet();
-      this.showBlog(id);
+    blogCreateDone: function(data) {
+      if (this.iscreate) {
+        this.blogs.unshift(data);
+        this.showBlog(data.id);
+      } else {
+        this.showBlog(data);
+      }
     },
-    blogDeleteDone: function() {
-      this.getBlogSet();
+    blogDeleteDone: function(blogid) {
+      for (let i = 0; i < this.blogs.length; i++) {
+        if (this.blogs[i].id === blogid) {
+          this.blogs.splice(i, 1);
+        }
+      }
+      this.showBlog(
+        this.nextblogid === "nomore" ? this.prevblogid : this.nextblogid
+      );
     },
     showBlog: function(id) {
-      this.$router.push({ name: "blogInfo", params: { blogid: id } });
+      this.$router.push({
+        name: "blogInfo",
+        params: { id: undefined, blogid: id }
+      });
     },
     editBlog: function(blog) {
       this.iscreate = false;
       this.blog = blog;
-      this.$router.push({ name: "blogCreate" });
+      this.$router.push({ name: "blogCreate", params: { id: undefined } });
     },
     imageCreate: function() {},
     blogCreate: function() {
@@ -286,7 +308,7 @@ export default {
   },
   computed: {
     isSelf: function() {
-      return this.id == this.$store.state.id;
+      return this.cid == this.$store.state.id;
     }
   },
   watch: {
@@ -294,31 +316,54 @@ export default {
       this.countBlogPN(newid);
     },
     id(newid, oldid) {
-      this.init();
+      if (newid !== undefined) {
+        if (this.cid != newid) {
+          this.cid = newid;
+          this.currentThumbnail = BlogThumbnail;
+          this.init();
+        }
+      }
     }
   }
 };
 </script>
 
+<style lang="scss">
+@import "../assets/scss/var";
+.follow {
+  font-size: 15px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  color: $main-color;
+  font-weight: bold;
+  margin-left: 0.5em;
+}
+.go-follow {
+  background-color: $blue;
+}
+.was-followed {
+  background-color: $gray;
+}
+</style>
+
+
 <style lang="scss" scoped>
 @import "../assets/scss/config";
 @import "../assets/scss/var";
-.wrap {
-  width: 100%;
-  height: 100%;
-}
 .right-panel {
   width: 25em;
-  height: 100%;
+  height: calc(100% - 60px);
   background: rgba(255, 250, 250, 0.825);
   position: fixed;
-  top: 0;
+  top: $navheight;
   right: 0;
   outline: 0;
   display: block;
   visibility: visible;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: scroll;
+
   text-align: start;
   z-index: 10;
   padding: 0 0.75em;
@@ -326,21 +371,6 @@ export default {
 
   header {
     padding: 0.75em;
-    .follow {
-      font-size: 15px;
-      padding: 3px 8px;
-      border-radius: 3px;
-      cursor: pointer;
-      color: $main-color;
-      font-weight: bold;
-      margin-left: 0.5em;
-    }
-    .go-follow {
-      background-color: $blue;
-    }
-    .was-followed {
-      background-color: $gray;
-    }
 
     #user-detail {
       display: flex;
@@ -359,6 +389,9 @@ export default {
         #ff {
           font-size: 15px;
           margin-bottom: 1em;
+          .ff {
+            cursor: pointer;
+          }
         }
         #bio {
           font-size: 13px;
@@ -449,9 +482,6 @@ export default {
 .left-viewer {
   width: calc(100% - 25em - 1.5em);
   height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
   visibility: visible;
   @include easeOut;
   .mobile-close {
@@ -474,7 +504,7 @@ export default {
       -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
       position: absolute;
       right: 0;
-      top: 50vh;
+      top: calc((100vh - 60px) / 2);
       width: 6em;
       height: 6em;
       margin-top: -3em;
@@ -490,7 +520,7 @@ export default {
       position: absolute;
       transform: scaleX(-1);
       left: 0;
-      top: 50vh;
+      top: calc((100vh - 60px) / 2);
       width: 6em;
       height: 6em;
       margin-top: -3em;
@@ -505,7 +535,7 @@ export default {
     .close-icon {
       -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
       position: fixed;
-      top: 0;
+      top: $navheight;
       width: 4em;
       height: 4em;
       background-repeat: no-repeat;
@@ -529,7 +559,6 @@ export default {
 
   .content {
     width: 100%;
-    height: 100%;
     @include easeOut;
   }
 }

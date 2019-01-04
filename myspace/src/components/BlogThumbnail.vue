@@ -5,7 +5,7 @@
       :key="blog.id"
       :class="['the-thumbnail', onfocus == blog.id ? 'shadow':'']"
       @click.native="$emit('showLeft')"
-      :to="{name: 'blogInfo', params: {blogid: blog.id}}"
+      :to="{name: 'blogInfo', params: {id: undefined, blogid: blog.id}}"
     >
       <p>{{ blog.title }}</p>
     </router-link>
@@ -21,8 +21,10 @@ export default {
   },
   props: {
     blogs: "",
-    onfocus: false
-  }
+    onfocus: false,
+    uid: ""
+  },
+  methods: {}
 };
 </script>
 
@@ -33,6 +35,7 @@ export default {
   width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  padding: 10px 0;
 
   a {
     text-decoration: none;

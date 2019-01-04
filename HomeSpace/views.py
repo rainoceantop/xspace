@@ -54,10 +54,10 @@ class Register(View):
                         username=username,
                         password=password1
                     )
-                    redis_key = 'user:{}:detail'.format(user.id)
+                    redis_key = 'user:{}:detail'.format(user.username)
                     redis.hmset(
-                        redis_key, {'id': user.id, 'nickname': nickname, 'avatar': 'http://pkfzvu3bh.bkt.clouddn.com/default.jpg', 'bio': '', 'website': ''})
-                    user_detail = get_user_detail(user.id)
+                        redis_key, {'username': user.username, 'nickname': nickname, 'avatar': 'http://pkfzvu3bh.bkt.clouddn.com/default.jpg', 'bio': '', 'website': ''})
+                    user_detail = get_user_detail(user.username)
                     login(request, user)
                     return JsonResponse({'code': 1, 'msg': user_detail})
                 except Exception as e:
@@ -83,7 +83,7 @@ class Login(View):
         user = authenticate(username=username, password=password)
 
         if user is not None:
-            user_detail = get_user_detail(user.id)
+            user_detail = get_user_detail(user.username)
             login(request, user)
             return JsonResponse({'code': 1, 'msg': user_detail})
         return JsonResponse({'code': 2, 'msg': '账号或密码错误'})
@@ -108,20 +108,75 @@ class CheckLogin(View):
         if not request.user.is_authenticated:
             return JsonResponse({'code': 2, 'msg': '用户尚未登录'})
 
-        user_detail = get_user_detail(request.user.id)
+        user_detail = get_user_detail(request.user.username)
         return JsonResponse({'code': 1, 'msg': user_detail})
 
 
 class GetUserDetail(View):
     def get(self, request):
-        uid = request.GET['uid']
-        user_detail = get_user_detail(uid)
+        username = request.GET['username']
+        user_detail = get_user_detail(username)
         if user_detail:
             redis = get_redis()
             user_detail['followed'] = redis.sismember("user:{}:fans".format(
-                uid), request.user.id) if request.user.is_authenticated else False
+                username), request.user.username) if request.user.is_authenticated else False
             return JsonResponse({'code': 1, 'msg': user_detail})
         return JsonResponse({'code': 2, 'msg': '找不到该用户'})
+
+
+class GetFollows(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({'code': 2, 'msg': '用户尚未登录'})
+
+        uid = request.GET['uid']
+        redis = get_redis()
+        redis_key = "user:{}:follows".format(uid)
+        follows = redis.smembers(redis_key)
+        follows_detail = []
+        follow_detail = {}
+        for follow in follows:
+            follow_key = "user:{}:detail".format(follow.decode())
+            if redis.hget(follow_key, 'username') is not None:
+                follow_detail['username'] = redis.hget(
+                    follow_key, 'username').decode()
+                follow_detail['nickname'] = redis.hget(
+                    follow_key, 'nickname').decode()
+                follow_detail['avatar'] = redis.hget(
+                    follow_key, 'avatar').decode()
+                follow_detail['bio'] = redis.hget(
+                    follow_key, 'bio').decode().replace('<br>', '\n')
+                follow_detail['followed'] = redis.sismember(
+                    "user:{}:follows".format(request.user.username), follow.decode())
+                follows_detail.append(follow_detail)
+        return JsonResponse({'code': 1, 'msg': follows_detail})
+
+
+class GetFans(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({'code': 2, 'msg': '用户尚未登录'})
+
+        uid = request.GET['uid']
+        redis = get_redis()
+        redis_key = "user:{}:fans".format(uid)
+        fans = redis.smembers(redis_key)
+        fans_detail = []
+        fan_detail = {}
+        for fan in fans:
+            fan_key = "user:{}:detail".format(fan.decode())
+            if redis.hget(fan_key, 'username') is not None:
+                fan_detail['username'] = redis.hget(
+                    fan_key, 'username').decode()
+                fan_detail['nickname'] = redis.hget(
+                    fan_key, 'nickname').decode()
+                fan_detail['avatar'] = redis.hget(fan_key, 'avatar').decode()
+                fan_detail['bio'] = redis.hget(
+                    fan_key, 'bio').decode().replace('<br>', '\n')
+                fan_detail['followed'] = redis.sismember(
+                    "user:{}:follows".format(request.user.username), fan.decode())
+                fans_detail.append(fan_detail)
+        return JsonResponse({'code': 1, 'msg': fans_detail})
 
 
 class UserFollow(View):
@@ -134,11 +189,13 @@ class UserFollow(View):
         fOrUnf = request.GET['fOrUnf']
 
         if fOrUnf == 'follow':
-            redis.sadd("user:{}:follows".format(request.user.id), identity)
-            redis.sadd("user:{}:fans".format(identity), request.user.id)
+            redis.sadd("user:{}:follows".format(
+                request.user.username), identity)
+            redis.sadd("user:{}:fans".format(identity), request.user.username)
         if fOrUnf == 'unfollow':
-            redis.srem("user:{}:follows".format(request.user.id), identity)
-            redis.srem("user:{}:fans".format(identity), request.user.id)
+            redis.srem("user:{}:follows".format(
+                request.user.username), identity)
+            redis.srem("user:{}:fans".format(identity), request.user.username)
 
         return JsonResponse({'code': 1, 'msg': '操作成功'})
 
@@ -188,7 +245,7 @@ class ChangeAvatar(View):
             return JsonResponse({'code': 3, 'msg': '上传失败，文件类型错误'})
 
         file_name = '{}_avatar_{}_{}'.format(
-            request.user.id, time.time(), avatar_file.name)
+            request.user.username, time.time(), avatar_file.name)
         fs = FileSystemStorage()
         fs.save(file_name, avatar_file)
         file_path = os.path.join(
@@ -213,7 +270,7 @@ class ChangeAvatar(View):
             fs.delete(file_name)
             # 删除以前头像地址
             used_avatar = redis.hget('user:{}:detail'.format(
-                request.user.id), 'avatar').decode()
+                request.user.username), 'avatar').decode()
 
             if used_avatar != 'http://pkfzvu3bh.bkt.clouddn.com/default.jpg':
                 try:
@@ -227,7 +284,7 @@ class ChangeAvatar(View):
             # 更新头像地址
             url = 'http://pkfzvu3bh.bkt.clouddn.com/{}'.format(file_name)
             redis.hset('user:{}:detail'.format(
-                request.user.id), 'avatar', url)
+                request.user.username), 'avatar', url)
 
             # 刷新缓存
             cdn_manager = CdnManager(q)
@@ -243,7 +300,7 @@ class GetUpdateData(View):
             return JsonResponse({'code': 2, 'msg': '用户尚未登录'})
 
         redis = get_redis()
-        redis_key = "user:{}:detail".format(request.user.id)
+        redis_key = "user:{}:detail".format(request.user.username)
 
         data = {
             'nickname': redis.hget(redis_key, 'nickname').decode(),
@@ -280,7 +337,7 @@ class UpdateDetail(View):
         if len(website) > 0 and not re.match(w_p, website):
             return JsonResponse({'code': 4, 'msg': '网址格式不正确'})
 
-        redis.hmset('user:{}:detail'.format(request.user.id), {
+        redis.hmset('user:{}:detail'.format(request.user.username), {
             'nickname': nickname,
             'website': website,
             'bio': bio
@@ -305,12 +362,12 @@ def get_user_detail(uid):
     redis = get_redis()
     redis_key = "user:{}:detail".format(uid)
     user_detail = {
-        'id': int(redis.hget(redis_key, 'id').decode()),
+        'username': redis.hget(redis_key, 'username').decode(),
         'nickname': redis.hget(redis_key, 'nickname').decode(),
         'avatar': redis.hget(redis_key, 'avatar').decode(),
         'bio': redis.hget(redis_key, 'bio').decode(),
         'website': redis.hget(redis_key, 'website').decode(),
         'follows': redis.scard("user:{}:follows".format(uid)),
         'fans': redis.scard("user:{}:fans".format(uid)),
-    } if redis.hget(redis_key, 'id') is not None else False
+    } if redis.hget(redis_key, 'username') is not None else False
     return user_detail

@@ -13,4 +13,6 @@ urlpatterns = [
     path('changeAvatar', views.ChangeAvatar.as_view()),
     path('updateDetail', views.UpdateDetail.as_view()),
     path('getUpdateData', views.GetUpdateData.as_view()),
+    path('getFollows', views.GetFollows.as_view()),
+    path('getFans', views.GetFans.as_view()),
 ]

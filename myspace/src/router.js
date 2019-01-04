@@ -12,19 +12,36 @@ import ProfileEdit from './views/ProfileEdit'
 import DetailEdit from './components/DetailEdit'
 import PasswordChange from './components/PasswordChange'
 import AvatarChange from './components/AvatarChange'
+import BlogInfoPage from './views/BlogInfoPage'
+import Home from './views/Home'
 
 
 Vue.use(Router)
 
 const router = new Router({
+  mode: 'history',
   routes: [
     {
       path: '/',
-      component: CheckStatus
+      name: 'home',
+      component: Home
+    },
+    {
+      path: '/b/:blogid',
+      name: 'blogInfoPage',
+      beforeEnter: (to, from, next) => {
+        if (from.path === '/') {
+          next()
+        } else {
+          next(false)
+        }
+      },
+      component: BlogInfoPage,
+      props: true
     },
     {
       path: '/:id',
-      name: 'space',
+      name: 'myspace',
       component: MySpace,
       props: true,
       children: [
@@ -34,41 +51,30 @@ const router = new Router({
           props: true,
         },
         {
-          path: 'blog/:blogid',
+          path: '/b/:blogid',
           name: 'blogInfo',
           components: {
+            default: MySpace,
             leftView: BlogInfo
           },
-          props: { leftView: true },
+          props: {
+            default: true,
+            leftView: true
+          }
         },
         {
-          path: 'image/:imageid',
-          name: 'imageInfo',
-          components: {
-            leftView: imageInfo
-          },
-          props: { leftView: true },
-        },
-        {
-          path: 'create/blog',
+          path: '/create/blog',
           name: 'blogCreate',
           components: {
+            default: MySpace,
             leftView: BlogCreate
           },
           beforeEnter: (to, from, next) => {
             if (store.state.login) next()
             else next('/user/login')
-          }
-        },
-        {
-          path: 'create/image',
-          name: 'imageCreate',
-          components: {
-            leftView: ImageCreate
           },
-          beforeEnter: (to, from, next) => {
-            if (store.state.login) next()
-            else next('/user/login')
+          props: {
+            default: true
           }
         },]
     },

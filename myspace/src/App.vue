@@ -1,8 +1,47 @@
 <template>
   <main id="app">
-    <router-view/>
+    <nav>
+      <ul class="container">
+        <router-link :to="{name: 'home'}">首页</router-link>
+        <router-link
+          v-if="$store.state.login"
+          :to="{name: 'myspace', params: {id: $store.state.id}}"
+        >我的空间</router-link>
+        <router-link v-if="!$store.state.login" :to="{name: 'login'}">登录</router-link>
+        <router-link v-if="!$store.state.login" :to="{name: 'register'}">注册</router-link>
+      </ul>
+    </nav>
+    <div id="nav-replace"></div>
+    <main id="main">
+      <router-view/>
+    </main>
+    <footer class="container" id="app-footer">
+      <div id="footer-nav">
+        <ul class="footer-list">
+          <li>
+            <a href="/">关于</a>
+          </li>
+          <li>
+            <a href="/">支持</a>
+          </li>
+          <li>
+            <a href="/">联系</a>
+          </li>
+        </ul>
+      </div>
+      <div>&copy; Xspace</div>
+    </footer>
   </main>
 </template>
+
+<script>
+export default {
+  created() {
+    this.$store.dispatch("checkLogin");
+  }
+};
+</script>
+
 
 
 <style lang='scss'>
@@ -22,6 +61,72 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
+  width: 100%;
+}
+nav {
+  width: 100%;
+  height: 60px;
+  border-bottom: 1px solid lightgray;
+  background: $main-color;
+
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  ul {
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  a {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-left: 1em;
+    text-decoration: none;
+  }
+
+  a.router-link-exact-active {
+    color: #42b983;
+  }
+}
+#nav-replace {
+  display: block;
+  width: 100%;
+  height: 60px;
+}
+#main {
+  width: 100%;
+  height: calc(100% - 60px);
+  min-height: calc(100vh - 60px - 60px);
+}
+
+#app-footer {
+  width: 100%;
+  height: 60px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  color: $gray;
+  font-size: 13px;
+
+  #footer-nav {
+    .footer-list {
+      list-style: none;
+      li {
+        display: inline-block;
+        padding: 5px 10px;
+
+        a {
+          text-decoration: none;
+          color: $blue;
+        }
+      }
+    }
+  }
 }
 
 figure img {
@@ -64,6 +169,10 @@ blockquote {
 </style>
 
 <script>
-export default {};
+export default {
+  created() {
+    this.$store.dispatch("checkLogin");
+  }
+};
 </script>
 

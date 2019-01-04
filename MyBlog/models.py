@@ -1,15 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import User
+import uuid
 from base64 import urlsafe_b64encode
 
 # Create your models here.
 
 
 class Blog(models.Model):
+    id = models.CharField(primary_key=True, max_length=22, null=False)
     title = models.CharField(max_length=200, null=False)
     body = models.TextField(null=False)
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='blogs', to_field='id')
+        User, on_delete=models.CASCADE, related_name='blogs', to_field='username')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -28,9 +30,9 @@ class BlogReply(models.Model):
     to_reply = models.IntegerField(null=False, default=0)
     parent_reply = models.IntegerField(null=False, default=0)
     from_user = models.ForeignKey(
-        User, to_field='id', on_delete=models.CASCADE, related_name='my_replies')
+        User, to_field='username', on_delete=models.CASCADE, related_name='my_replies')
     to_user = models.ForeignKey(
-        User, to_field='id', on_delete=models.CASCADE, related_name='my_replied')
+        User, to_field='username', on_delete=models.CASCADE, related_name='my_replied')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

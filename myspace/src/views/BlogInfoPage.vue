@@ -3,18 +3,6 @@
     <div v-if="blog" class="blog-info-wrap">
       <div class="blog-header">
         <h3 id="title">{{ blog.title }}</h3>
-        <div v-if="blog.author_id === $store.state.id" id="blog-operate-icons">
-          <font-awesome-icon
-            id="blog-edit-icon"
-            :icon="['fas', 'edit']"
-            @click="$emit('editBlog', blog)"
-          />
-          <font-awesome-icon
-            id="blog-delete-icon"
-            :icon="['fas', 'trash']"
-            @click="blogDelete(blog.id, blog.author_id)"
-          />
-        </div>
       </div>
       <div v-html="blog.body" id="body"></div>
       <footer class="artical-footer">
@@ -75,10 +63,15 @@
           >
         </section>
         <div class="reply-list">
-          <div v-for="parent_r of filtered_replies" :key="parent_r.id" class="reply-item">
+          <div
+            v-for="parent_r of replies"
+            v-if="parent_r.show"
+            :key="parent_r.id"
+            class="reply-item"
+          >
             <div>
               <router-link :to="{name: 'myspace', params: {id: parent_r.from_user_id}}">
-                <img class="avatar-sm" :src="parent_r.from_user_avatar" alt>
+                <img class="avatar-xs" :src="parent_r.from_user_avatar" alt>
               </router-link>
             </div>
             <div class="reply-info">
@@ -101,7 +94,8 @@
               >隐藏回复</p>
               <div class="sub-reply-list" v-if="parent_r.showChilds">
                 <div
-                  v-for="child_r of parent_r.childs.filter(item => {return item.show === true})"
+                  v-for="child_r of parent_r.childs"
+                  v-if="child_r.show"
                   :key="child_r.id"
                   class="sub-reply-item"
                 >
@@ -131,7 +125,7 @@
 
 
 <script>
-import ReplyItem from "./sub/replyItem";
+import ReplyItem from "@/components/sub/replyItem";
 import MySpace from "../views/MySpace";
 export default {
   name: "BlogInfo",
@@ -290,32 +284,9 @@ export default {
         });
     }
   },
-  activated() {
-    if (this.blogid !== 0) {
-      this.getBlog(this.blogid);
-    }
-  },
-  beforeRouteUpdate(to, from, next) {
-    if (to.params.blogid === "nomore") {
-      alert("没有文章了");
-      next(from.path);
-    } else {
-      next();
-    }
-  },
-  watch: {
-    blogid: function(newid, oldid) {
-      this.getBlog(newid);
-    }
-  },
   computed: {
     blogIcon() {
       return [this.blog.liked ? "fas" : "far", "thumbs-up"];
-    },
-    filtered_replies() {
-      return this.replies.filter(item => {
-        return item.show === true;
-      });
     }
   }
 };
@@ -327,4 +298,3 @@ export default {
 <style lang="scss">
 @import "../assets/scss/blog_info";
 </style>
-

@@ -7,7 +7,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.cache import cache
 from django_redis import get_redis_connection
 from django.db.models import Q, F
-from MyHome.utils import ConvertTime, get_redis
+from MyHome.utils import ConvertTime, get_redis, get_uuid_base64
 
 import json
 import re
@@ -71,9 +71,9 @@ class BlogGet(View):
 
 # 获取blog set
 class BlogSet(View):
-    def get(self, request, uid):
+    def get(self, request, username):
         blog_set = Blog.objects.filter(
-            author_id=uid).order_by('-created_at')
+            author_id=username).order_by('-created_at')
         if blog_set:
             blogs = [{
                 'id': blog.id,
@@ -102,11 +102,12 @@ class BlogStore(View):
             return JsonResponse({'code': 5, 'msg': 'Oh,come on,it is a blog!内容不得小于100个字符'})
 
         blog = Blog.objects.create(
+            id=get_uuid_base64(),
             title=title,
             body=body,
-            author_id=request.user.id
+            author_id=request.user.username
         )
-        return JsonResponse({'code': 1, 'msg': blog.id})
+        return JsonResponse({'code': 1, 'msg': {'id': blog.id, 'title': blog.title}})
 
 
 # 修改blog
@@ -127,7 +128,7 @@ class BlogUpdate(View):
 
         try:
             blog = Blog.objects.get(pk=id)
-            if blog.author_id is request.user.id:
+            if blog.author_id == request.user.username:
                 blog.title = title
                 blog.body = body
                 blog.save()
@@ -145,7 +146,7 @@ class BlogDelete(View):
         try:
             blog = Blog.objects.get(pk=id)
             redis = get_redis()
-            if blog.author_id is request.user.id:
+            if blog.author_id == request.user.username:
                 # 获取该博客的所有评论id
                 delete_ids = []
                 for r in blog.replies.all():
@@ -217,7 +218,7 @@ class BlogReplyStore(View):
         if Blog.objects.filter(id=blog_id).count() is not 1:
             return JsonResponse({'code': 5, 'msg': '找不到该博客'})
 
-        if User.objects.filter(id=to_user_id).count() is not 1:
+        if User.objects.filter(username=to_user_id).count() is not 1:
             return JsonResponse({'code': 6, 'msg': '所回复用户不存在'})
 
         blog_reply = BlogReply.objects.create(
@@ -225,7 +226,7 @@ class BlogReplyStore(View):
             to_reply=to_reply,
             parent_reply=parent_reply,
             body=body,
-            from_user_id=request.user.id,
+            from_user_id=request.user.username,
             to_user_id=to_user_id
         )
 
@@ -243,7 +244,7 @@ class BlogReplyStore(View):
             'to_user_id': blog_reply.to_user_id,
             'created_at': ct.convertDatetime(blog_reply.created_at),
             'likes': redis.scard('reply:{}:likes'.format(blog_reply.id)),
-            'liked': redis.sismember('reply:{}:likes'.format(blog_reply.id), request.user.id)
+            'liked': redis.sismember('reply:{}:likes'.format(blog_reply.id), request.user.username)
 
         }
         return JsonResponse({'code': 1, 'msg': blog_reply})
@@ -258,7 +259,7 @@ class BlogReplyDelete(View):
             return JsonResponse({'code': 2, 'msg': '找不到该评论'})
         from_user_id = reply.from_user_id
         parent_id = reply.parent_reply
-        if request.user.id is not from_user_id:
+        if request.user.username != from_user_id:
             return JsonResponse({'code': 3, 'msg': '你无权删除'})
 
         delete_ids = []

@@ -19,7 +19,7 @@ export default new Vuex.Store({
   mutations: {
     login(state, user_detail) {
       state.login = true,
-        state.id = user_detail.id
+        state.id = user_detail.username
       state.nickname = user_detail.nickname,
         state.avatar = user_detail.avatar,
         state.bio = user_detail.bio
