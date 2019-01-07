@@ -19,12 +19,21 @@ export default {
   data() {
     return {};
   },
+  created() {
+    this.$emit("getBlogSet");
+  },
   props: {
     blogs: "",
     onfocus: false,
     uid: ""
   },
-  methods: {}
+  watch: {
+    uid(n, o) {
+      if (n !== undefined) {
+        this.$emit("getBlogSet");
+      }
+    }
+  }
 };
 </script>
 
@@ -56,7 +65,7 @@ export default {
     justify-content: center;
     align-items: center;
 
-    background-image: url("../assets/images/01.jpg");
+    background-image: url("../assets/images/02.jpg");
     background-position: center;
     background-repeat: no-repeat;
 

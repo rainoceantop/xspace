@@ -32,12 +32,12 @@
       <article id="channel" class="animated fadeIn">
         <div v-if="isSelf" class="new" :style="newopenstyle">
           <div class="new-icon" id="new-button-icon" @click="toggleNew"></div>
-          <!-- <router-link
+          <router-link
             class="new-icon animated fadeIn"
             id="new-photo-icon"
             v-show="newopen"
-            :to="{name: 'imageCreate'}"
-          ></router-link>-->
+            :to="{name: 'photoCreate', params: {id: undefined}}"
+          ></router-link>
           <router-link
             class="new-icon animated fadeIn"
             id="new-blog-icon"
@@ -46,16 +46,30 @@
             :to="{name: 'blogCreate', params: {id: undefined}}"
           ></router-link>
         </div>
-        <div class="app-icons" id="photo-icon" @click="currentThumbnail = 'ImageThumbnail'"></div>
+        <div class="app-icons" id="photo-icon" @click="currentThumbnail = 'PhotoThumbnail'"></div>
         <div class="app-icons" id="blog-icon" @click="currentThumbnail = 'BlogThumbnail'"></div>
         <div class="app-icons" id="diary-icon"></div>
       </article>
       <keep-alive>
+        <!-- <PhotoThumbnail
+          v-if="currentThumbnail='PhotoThumbnail'"
+          v-on:showLeft="l_show=true"
+          v-on:getPhotoSet="getPhotoSet()"
+          :photos="photos"
+        ></PhotoThumbnail>
+        <BlogThumbnail
+          v-if="currentThumbnail='BlogThumbnail'"
+          v-on:showLeft="l_show=true"
+          v-on:getBlogSet="getBlogSet()"
+          :blogs="blogs"
+        ></BlogThumbnail>-->
         <component
           v-bind:is="currentThumbnail"
           v-on:showLeft="l_show=true"
+          v-on:getBlogSet="getBlogSet()"
+          v-on:getPhotoSet="getPhotoSet()"
           :blogs="blogs"
-          :onfocus="blogid"
+          :photos="photos"
           :uid="cid"
         ></component>
       </keep-alive>
@@ -67,21 +81,22 @@
       <div class="inner">
         <!-- <router-link
           class="nav-next"
-          :to="{name: 'blogInfo', params: {id:undefined, blogid: nextblogid}}"
+          :to="{name: 'blogInfo', params: {id:undefined, appid: nextappid}}"
         ></router-link>
         <router-link
           class="nav-prev"
-          :to="{name: 'blogInfo', params: {id:undefined, blogid: prevblogid}}"
+          :to="{name: 'blogInfo', params: {id:undefined, appid: prevappid}}"
         ></router-link>-->
         <div :class="[open?'close-icon':'open-icon']" @click="toggle"></div>
       </div>
       <div class="content animated fadeIn">
         <router-view
           name="leftView"
-          :iscreate="iscreate"
+          :biscreate="biscreate"
           :blog="blog"
           v-on:editBlog="editBlog"
           v-on:blogCreateDone="blogCreateDone"
+          v-on:photoCreateDone="photoCreateDone"
           v-on:blogDeleteDone="blogDeleteDone"
         ></router-view>
       </div>
@@ -91,7 +106,7 @@
 
 <script>
 import BlogThumbnail from "@/components/BlogThumbnail";
-import ImageThumbnail from "@/components/ImageThumbnail";
+import PhotoThumbnail from "@/components/PhotoThumbnail";
 import Fans from "@/components/Fans";
 import Follows from "@/components/Follows";
 
@@ -99,7 +114,7 @@ export default {
   name: "MySpace",
   components: {
     BlogThumbnail,
-    ImageThumbnail,
+    PhotoThumbnail,
     Fans,
     Follows
   },
@@ -121,11 +136,15 @@ export default {
       newopenstyle: "width:60px",
       currentThumbnail: BlogThumbnail,
 
-      prevblogid: "nomore",
-      iscreate: true, // 是否创建，否为编辑
+      prevappid: "nomore",
+      biscreate: true, // 是否创建，否为编辑
       blog: "", // 更新博客需要参数
-      nextblogid: "nomore",
+      nextappid: "nomore",
       blogs: "",
+
+      piscreate: true,
+      photo: "",
+      photos: "",
 
       l_show: true
     };
@@ -142,12 +161,10 @@ export default {
     this.cid = this.id;
     this.init();
   },
-  props: ["id", "blogid"],
+  props: ["id", "appid"],
   methods: {
     init() {
       this.getUserDetail();
-      // 获取当前的thumbnail
-      this.getBlogSet();
     },
     getUserDetail() {
       this.$axios
@@ -241,36 +258,46 @@ export default {
         .then(response => {
           if (response.data.code === 1) {
             this.blogs = response.data.msg;
-            // if (this.iscreate) {
-            //   if (this.blogs[0].id !== undefined) {
-            //     if (!this.blogid) {
-            //       this.showBlog(this.blogs[0].id);
-            //     }
-            //     this.countBlogPN(this.blogid);
-            //   }
-            // }
           } else {
             this.blogs = [];
           }
         });
     },
+    getPhotoSet: function() {
+      // 获取图片
+      this.$axios
+        .get(`http://192.168.1.7:8000/api/photo/${this.cid}/photoset`)
+        .then(response => {
+          if (response.data.code === 1) {
+            this.photos = response.data.msg;
+          } else {
+            this.photos = [];
+          }
+        });
+    },
     blogCreateDone: function(data) {
-      if (this.iscreate) {
+      this.currentThumbnail = BlogThumbnail;
+      if (this.biscreate) {
         this.blogs.unshift(data);
         this.showBlog(data.id);
       } else {
         this.showBlog(data);
       }
     },
-    blogDeleteDone: function(blogid) {
+    blogDeleteDone: function(appid) {
       for (let i = 0; i < this.blogs.length; i++) {
-        if (this.blogs[i].id === blogid) {
+        if (this.blogs[i].id === appid) {
           this.blogs.splice(i, 1);
         }
       }
       this.showBlog(
-        this.nextblogid === "nomore" ? this.prevblogid : this.nextblogid
+        this.nextappid === "nomore" ? this.prevappid : this.nextappid
       );
+    },
+    photoCreateDone: function(data) {
+      this.currentThumbnail = PhotoThumbnail;
+      this.photos.unshift(data);
+      this.showPhoto(data.id);
     },
     showBlog: function(id) {
       this.$router.push({
@@ -278,14 +305,20 @@ export default {
         params: { id: undefined, blogid: id }
       });
     },
+    showPhoto: function(id) {
+      this.$router.push({
+        name: "photoInfo",
+        params: { id: undefined, photoid: id }
+      });
+    },
     editBlog: function(blog) {
-      this.iscreate = false;
+      this.biscreate = false;
       this.blog = blog;
       this.$router.push({ name: "blogCreate", params: { id: undefined } });
     },
-    imageCreate: function() {},
+    photoCreate: function() {},
     blogCreate: function() {
-      this.iscreate = true;
+      this.biscreate = true;
       this.blog = "";
       this.l_show = true;
     },
@@ -293,14 +326,14 @@ export default {
       for (let i = 0; i < this.blogs.length; i++) {
         if (this.blogs[i].id == id) {
           if (this.blogs[i - 1] !== undefined) {
-            this.prevblogid = this.blogs[i - 1].id;
+            this.prevappid = this.blogs[i - 1].id;
           } else {
-            this.prevblogid = "nomore";
+            this.prevappid = "nomore";
           }
           if (this.blogs[i + 1] !== undefined) {
-            this.nextblogid = this.blogs[i + 1].id;
+            this.nextappid = this.blogs[i + 1].id;
           } else {
-            this.nextblogid = "nomore";
+            this.nextappid = "nomore";
           }
         }
       }
@@ -312,7 +345,7 @@ export default {
     }
   },
   watch: {
-    blogid(newid, oldid) {
+    appid(newid, oldid) {
       this.countBlogPN(newid);
     },
     id(newid, oldid) {
@@ -481,7 +514,7 @@ export default {
 }
 .left-viewer {
   width: calc(100% - 25em - 1.5em);
-  height: 100%;
+  height: calc(100% - 60px);
   visibility: visible;
   @include easeOut;
   .mobile-close {
@@ -559,18 +592,16 @@ export default {
 
   .content {
     width: 100%;
+    height: 100%;
     @include easeOut;
   }
 }
 
 .fullscreen {
   width: 100%;
-  height: 100%;
+  height: calc(100% - 60px);
 }
 
-.test {
-  display: none;
-}
 @include mediaXS {
   .right-panel {
     width: 100% !important;

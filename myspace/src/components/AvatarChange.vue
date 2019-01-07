@@ -10,7 +10,7 @@
         <button @click="choiceImg" :disabled="onUpload" type="button" class="button-style">
           {{ uploadLabel }}
           <input
-            ref="inputfile"
+            ref="uploadAvatar"
             class="input-file"
             type="file"
             @change="changeAvatar($event)"
@@ -32,7 +32,7 @@ export default {
   },
   methods: {
     choiceImg: function() {
-      this.$refs.inputfile.click();
+      this.$refs.uploadAvatar.click();
     },
     changeAvatar: function(event) {
       this.onUpload = true;

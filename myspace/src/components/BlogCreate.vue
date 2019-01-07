@@ -64,7 +64,7 @@ export default {
   },
   props: {
     blog: "",
-    iscreate: true
+    biscreate: true
   },
   components: {
     ckeditor: CKEditor.component
@@ -76,7 +76,7 @@ export default {
       else if (this.editorData.length < 100) alert("内容至少一百字以上");
       else {
         let url = "http://192.168.1.7:8000/api/blog/store";
-        if (!this.iscreate) {
+        if (!this.biscreate) {
           url = `http://192.168.1.7:8000/api/blog/${this.blog.id}/update`;
         }
         this.$axios({
@@ -97,7 +97,7 @@ export default {
     initData: function() {
       this.title = "";
       this.editorData = "";
-      if (!this.iscreate) {
+      if (!this.biscreate) {
         setTimeout(this.updateData, 1);
       }
     },

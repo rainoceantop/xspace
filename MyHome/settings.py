@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'corsheaders',
     # own
     'HomeSpace',
-    'MyBlog'
+    'MyBlog',
+    'MyPhoto'
 ]
 
 MIDDLEWARE = [

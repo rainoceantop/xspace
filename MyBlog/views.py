@@ -80,7 +80,6 @@ class BlogSet(View):
                 'title': blog.title
             } for blog in blog_set]
 
-            # blog_set = json.loads(serializers.serialize('json', blog_set))
             return JsonResponse({'code': 1, 'msg': blogs})
         return JsonResponse({'code': 2, 'msg': '未找到相关博客'})
 
@@ -288,8 +287,6 @@ class BlogAndReplyLikes(View):
         redis = get_redis()
         if way != 'blog' and way != 'reply':
             return JsonResponse({'code': 2, 'msg': '出错，找不到所给参数的有效集合'})
-        if not identity.isdigit():
-            return JsonResponse({'code': 3, 'msg': '出错，找不到所给参数的有效集合'})
 
         key = way + ':' + identity + ':likes'
         if addOrRem == 'add':

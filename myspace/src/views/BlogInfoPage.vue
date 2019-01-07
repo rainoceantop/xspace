@@ -63,12 +63,7 @@
           >
         </section>
         <div class="reply-list">
-          <div
-            v-for="parent_r of replies"
-            v-if="parent_r.show"
-            :key="parent_r.id"
-            class="reply-item"
-          >
+          <div v-for="parent_r of filtered_replies" :key="parent_r.id" class="reply-item">
             <div>
               <router-link :to="{name: 'myspace', params: {id: parent_r.from_user_id}}">
                 <img class="avatar-xs" :src="parent_r.from_user_avatar" alt>
@@ -94,8 +89,7 @@
               >隐藏回复</p>
               <div class="sub-reply-list" v-if="parent_r.showChilds">
                 <div
-                  v-for="child_r of parent_r.childs"
-                  v-if="child_r.show"
+                  v-for="child_r of parent_r.childs.filter(item => {return item.show === true})"
                   :key="child_r.id"
                   class="sub-reply-item"
                 >
@@ -287,6 +281,11 @@ export default {
   computed: {
     blogIcon() {
       return [this.blog.liked ? "fas" : "far", "thumbs-up"];
+    },
+    filtered_replies() {
+      return this.replies.filter(item => {
+        return item.show === true;
+      });
     }
   }
 };
