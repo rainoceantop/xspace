@@ -13,7 +13,9 @@
     </nav>
     <div id="nav-replace"></div>
     <main id="main">
-      <router-view/>
+      <keep-alive>
+        <router-view/>
+      </keep-alive>
     </main>
     <footer class="container" id="app-footer">
       <div id="footer-nav">
@@ -101,7 +103,7 @@ nav {
   width: 100%;
   height: calc(100% - 60px);
   min-height: calc(100vh - 60px - 60px);
-    .like-icon {
+  .like-icon {
     cursor: pointer;
   }
   .like-count {

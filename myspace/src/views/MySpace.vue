@@ -90,15 +90,17 @@
         <div :class="[open?'close-icon':'open-icon']" @click="toggle"></div>
       </div>
       <div class="content animated fadeIn">
-        <router-view
-          name="leftView"
-          :biscreate="biscreate"
-          :blog="blog"
-          v-on:editBlog="editBlog"
-          v-on:blogCreateDone="blogCreateDone"
-          v-on:photoCreateDone="photoCreateDone"
-          v-on:blogDeleteDone="blogDeleteDone"
-        ></router-view>
+        <keep-alive>
+          <router-view
+            name="leftView"
+            :biscreate="biscreate"
+            :blog="blog"
+            v-on:editBlog="editBlog"
+            v-on:blogCreateDone="blogCreateDone"
+            v-on:photoCreateDone="photoCreateDone"
+            v-on:blogDeleteDone="blogDeleteDone"
+          ></router-view>
+        </keep-alive>
       </div>
     </section>
   </div>

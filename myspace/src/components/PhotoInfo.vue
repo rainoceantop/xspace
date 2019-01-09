@@ -1,51 +1,50 @@
 <template>
-<div>
+  <div>
     <div class="info">
-    <div class="photo-view">
-      <img
-        oncontextmenu="return false"
-        ondragstart="return false"
-        v-show="photo"
-        class="the-photo animated fadeIn"
-        :src="photo.url"
-        alt
-      >
-    </div>
+      <div class="photo-view">
+        <img
+          oncontextmenu="return false"
+          ondragstart="return false"
+          v-show="photo"
+          class="the-photo animated fadeIn"
+          :src="photo.url"
+          alt
+        >
+      </div>
 
-    <div v-show="photo" class="caption animated fadeIn">
-      <h3 v-if="photo.title">{{ photo.title }}</h3>
-      <p>{{ photo.caption }}</p>
-      <div class="photo-footer">
-        <span>
-          <span class="time-area">
-            <font-awesome-icon :icon="['far', 'clock']"/>&nbsp;
-            <span>{{ photo.created_at }}</span>
-          </span>&emsp;
-          <span class="like-area" @click="toggleLike('photo', photo)">
-            <font-awesome-icon v-show="!photo.liked" :icon="['far', 'heart']"/>
-            <font-awesome-icon style="color:red" v-show="photo.liked" :icon="['fas', 'heart']"/>&nbsp;
-            <span>{{ photo.likes }}</span>
-          </span>&emsp;
-          <span class="comment-area">
-            <font-awesome-icon :icon="['far', 'comment']"/>&nbsp;
-            <span>{{ photo.replies_count }}</span>
+      <div v-show="photo" class="caption animated fadeIn">
+        <h3 v-if="photo.title">{{ photo.title }}</h3>
+        <p>{{ photo.caption }}</p>
+        <div class="photo-footer">
+          <span>
+            <span class="time-area">
+              <font-awesome-icon :icon="['far', 'clock']"/>&nbsp;
+              <span>{{ photo.created_at }}</span>
+            </span>&emsp;
+            <span class="like-area" @click="toggleLike('photo', photo)">
+              <font-awesome-icon v-show="!photo.liked" :icon="['far', 'heart']"/>
+              <font-awesome-icon style="color:red" v-show="photo.liked" :icon="['fas', 'heart']"/>&nbsp;
+              <span>{{ photo.likes }}</span>
+            </span>&emsp;
+            <span class="comment-area">
+              <font-awesome-icon :icon="['far', 'comment']"/>&nbsp;
+              <span>{{ photo.replies_count }}</span>
+            </span>
           </span>
-        </span>
-        <div>
-          <span class="author-area">
-            <router-link :to="{name: 'myspace', params: {id: photo.author_id}}">
-              <img :src="photo.author_avatar" class="avatar-xs" alt :title="photo.author">
-            </router-link>
-          </span>
+          <div>
+            <span class="author-area">
+              <router-link :to="{name: 'myspace', params: {id: photo.author_id}}">
+                <img :src="photo.author_avatar" class="avatar-xs" alt :title="photo.author">
+              </router-link>
+            </span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="container">
+    <div class="container">
       <Reply app="photo" :artical="photo" v-on:toggleLike="toggleLike"></Reply>
+    </div>
   </div>
-</div>
-
 </template>
 
 <script>
@@ -53,14 +52,15 @@ import Reply from "./sub/Reply";
 export default {
   data() {
     return {
-      photo: ""
+      photo: "",
+      cached_photos: {}
     };
   },
   created() {
     this.getPhoto(this.photoid);
   },
   props: ["photoid"],
-  components:{Reply},
+  components: { Reply },
   methods: {
     getPhoto: function(id) {
       if (id !== undefined) {
@@ -70,6 +70,7 @@ export default {
           .then(response => {
             if (response.data.code === 1) {
               this.photo = response.data.msg;
+              this.cached_photos[id] = response.data.msg;
             } else {
               alert(response.data.msg);
             }
@@ -103,7 +104,8 @@ export default {
   },
   watch: {
     photoid(n, o) {
-      this.getPhoto(n);
+      if (this.cached_photos[n] === undefined) this.getPhoto(n);
+      else this.photo = this.cached_photos[n];
     }
   }
 };
@@ -112,5 +114,5 @@ export default {
 
 
 <style lang="scss">
-@import '../assets/scss/photo_info';
+@import "../assets/scss/photo_info";
 </style>

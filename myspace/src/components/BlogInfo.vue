@@ -42,9 +42,7 @@
           </div>
         </aside>
       </footer>
-      <span>
-        {{ blog.replies_count }}条评论
-      </span>
+      <span>{{ blog.replies_count }}条评论</span>
       <Reply app="blog" :artical="blog" v-on:toggleLike="toggleLike"></Reply>
     </div>
   </div>
@@ -58,7 +56,8 @@ export default {
   name: "BlogInfo",
   data() {
     return {
-      blog: ""
+      blog: "",
+      cached_blogs: {}
     };
   },
   created() {
@@ -76,6 +75,7 @@ export default {
           .then(response => {
             if (response.data.code === 1) {
               this.blog = response.data.msg;
+              this.cached_blogs[id] = response.data.msg;
             } else {
               alert(response.data.msg);
             }
@@ -126,7 +126,8 @@ export default {
   },
   watch: {
     blogid: function(newid, oldid) {
-      this.getBlog(newid);
+      if (this.cached_blogs[newid] === undefined) this.getBlog(newid);
+      else this.blog = this.cached_blogs[newid];
     }
   },
   computed: {

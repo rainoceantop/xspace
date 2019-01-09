@@ -26,7 +26,11 @@
     </section>
 
     <div class="reply-list">
-      <div v-for="reply of replies.filter(item => {return item.show === true;})" :key="reply.id" class="reply-item">
+      <div
+        v-for="reply of replies.filter(item => {return item.show === true;})"
+        :key="reply.id"
+        class="reply-item"
+      >
         <div>
           <router-link :to="{name: 'myspace', params: {id: reply.from_user_id}}">
             <img class="avatar-sm" :src="reply.from_user_avatar" alt>
@@ -42,7 +46,7 @@
             <span class="reply-time">{{ reply.created_at }}</span>
           </p>
           <p class="reply-body">{{ reply.body }}</p>
-          
+
           <div class="reply-footer">
             <div>
               <span class="like-icon">
@@ -89,10 +93,21 @@
           <p
             class="show-sub-reply-button"
             v-show="reply.sub_replies_count > 0 && reply.displayChilds === false"
-            @click="getSubReplies(reply)"
-          >显示{{ reply.sub_replies_count }}条回复</p>
+            @click="showSubReplies(reply)"
+          >
+            <span>显示{{ reply.sub_replies_count }}条回复</span>
+            <font-awesome-icon :icon="['fas', 'chevron-down']"></font-awesome-icon>
+          </p>
+          <p
+            class="show-sub-reply-button"
+            v-show="reply.displayChilds === true"
+            @click="reply.displayChilds = false"
+          >
+            <span>隐藏回复</span>
+            <font-awesome-icon :icon="['fas', 'chevron-up']"></font-awesome-icon>
+          </p>
 
-          <div class="sub-reply-list" v-show="reply.displayChilds">
+          <div class="sub-reply-list animated fadeIn" v-show="reply.displayChilds">
             <div
               v-for="sub_reply of reply.childs.filter(item => {return item.show === true})"
               :key="sub_reply.id"
@@ -104,61 +119,60 @@
                 </router-link>
               </div>
               <div class="reply-info">
+                <p>
+                  <router-link
+                    class="reply-user-name"
+                    :to="{name: 'myspace', params: {id: sub_reply.from_user_id}}"
+                  >{{ sub_reply.from_user_nickname }}</router-link>
+                  <span class="reply-time">{{ sub_reply.created_at }}</span>
+                </p>
+                <p class="reply-body">{{ sub_reply.body }}</p>
 
-
-              <p>
-                <router-link
-                  class="reply-user-name"
-                  :to="{name: 'myspace', params: {id: sub_reply.from_user_id}}"
-                >{{ sub_reply.from_user_nickname }}</router-link>
-                <span class="reply-time">{{ sub_reply.created_at }}</span>
-              </p>
-              <p class="reply-body">{{ sub_reply.body }}</p>
-              
-              <div class="reply-footer">
-                <div>
-                  <span class="like-icon">
-                    <font-awesome-icon
-                      @click="$emit('toggleLike', app === 'photo' ? 'psreply' : 'bsreply', sub_reply)"
-                      :icon="[sub_reply.liked ? 'fas' : 'far','thumbs-up']"
-                      size="sm"
-                    />
-                  </span>
-                  <span class="like-count">{{ sub_reply.likes }}</span>
+                <div class="reply-footer">
+                  <div>
+                    <span class="like-icon">
+                      <font-awesome-icon
+                        @click="$emit('toggleLike', app === 'photo' ? 'psreply' : 'bsreply', sub_reply)"
+                        :icon="[sub_reply.liked ? 'fas' : 'far','thumbs-up']"
+                        size="sm"
+                      />
+                    </span>
+                    <span class="like-count">{{ sub_reply.likes }}</span>
+                  </div>
+                  <div>
+                    <span class="reply-reply-button" @click="sub_reply.replyBegin = true;">回复</span>
+                    <span
+                      v-if="sub_reply.from_user_id === $store.state.id"
+                      class="reply-delete-button"
+                      @click="replyDelete(sub_reply, 'subreply')"
+                    >删除</span>
+                  </div>
                 </div>
-                <div>
-                  <span class="reply-reply-button" @click="sub_reply.replyBegin = true;">回复</span>
-                  <span
-                    v-if="sub_reply.from_user_id === $store.state.id"
-                    class="reply-delete-button"
-                    @click="replyDelete(sub_reply, 'subreply')"
-                  >删除</span>
-                </div>
-              </div>
 
-              <section v-if="sub_reply.replyBegin" class="sub-replying">
-                <img class="avatar-xs" :src="$store.state.avatar" alt>
+                <section v-if="sub_reply.replyBegin" class="sub-replying">
+                  <img class="avatar-xs" :src="$store.state.avatar" alt>
+                  <div
+                    contenteditable="plaintext-only"
+                    class="sub-reply-input"
+                    v-on:blur="sub_reply.replyOnFocus=false"
+                    v-on:focus="sub_reply.replyOnFocus=true; sub_reply.replyFirstFocus=true"
+                    @input="replyreplyInput($event, sub_reply)"
+                  >{{ sub_reply.from_user_nickname }}&nbsp;</div>
+                </section>
                 <div
-                  contenteditable="plaintext-only"
-                  class="sub-reply-input"
-                  v-on:blur="sub_reply.replyOnFocus=false"
-                  v-on:focus="sub_reply.replyOnFocus=true; sub_reply.replyFirstFocus=true"
-                  @input="replyreplyInput($event, sub_reply)"
-                >{{ sub_reply.from_user_nickname }}&nbsp;</div>
-              </section>
-              <div :class="{'progess-bar-0': !sub_reply.replyOnFocus, 'progess-bar-1': sub_reply.replyOnFocus}"></div>
+                  :class="{'progess-bar-0': !sub_reply.replyOnFocus, 'progess-bar-1': sub_reply.replyOnFocus}"
+                ></div>
 
-              <section v-if="sub_reply.replyFirstFocus" class="reply-button animated fadeIn">
-                <span class="cancel" @click="replyreplyCancel(sub_reply)">取消</span>
-                <input
-                  class="button-style"
-                  :disabled="sub_reply.replyInputValue.trim().length === 0"
-                  type="button"
-                  value="回复"
-                  @click="replyreplySubmit(reply, sub_reply, 'subreply')"
-                >
-              </section>
-
+                <section v-if="sub_reply.replyFirstFocus" class="reply-button animated fadeIn">
+                  <span class="cancel" @click="replyreplyCancel(sub_reply)">取消</span>
+                  <input
+                    class="button-style"
+                    :disabled="sub_reply.replyInputValue.trim().length === 0"
+                    type="button"
+                    value="回复"
+                    @click="replyreplySubmit(reply, sub_reply, 'subreply')"
+                  >
+                </section>
               </div>
             </div>
           </div>
@@ -177,7 +191,8 @@ export default {
       replyInputValue: "",
       firstFocus: false,
 
-      replies: []
+      replies: [],
+      cached_replies: {}
     };
   },
   props: ["app", "artical"],
@@ -187,7 +202,7 @@ export default {
         .get(`http://192.168.1.7:8000/api/${this.app}/reply?id=${artical.id}`)
         .then(response => {
           let rs = response.data.msg;
-          if(rs) {
+          if (rs) {
             for (let r of rs) {
               r["displayChilds"] = false;
               r["replyBegin"] = false;
@@ -195,34 +210,42 @@ export default {
               r["replyFirstFocus"] = false;
               r["replyInputValue"] = "";
               r["show"] = true;
-              r['getChilds'] = false;
-              r['childs'] = [];
+              r["getChilds"] = false;
+              r["childs"] = [];
             }
           }
-          this.replies = rs
+          this.replies = rs;
+          this.cached_replies[this.app + artical.id] = rs;
         })
         .catch(error => {});
     },
-    getSubReplies: function(reply){
-      reply.displayChilds = true
-      if(!reply.getChilds){
-        this.$axios.get(`http://192.168.1.7:8000/api/${this.app}/subReply?id=${reply.id}`).then(response => {
-            let rs = response.data.msg;
-            if(rs) {
-              console.log(rs)
-              for (let sr of rs) {
-                sr["replyBegin"] = false;
-                sr["replyOnFocus"] = false;
-                sr["replyFirstFocus"] = false;
-                sr["replyInputValue"] = "";
-                sr["show"] = true;
-                reply.childs.push(sr)
-              }
-            }
-        })
+    showSubReplies: function(reply) {
+      reply.displayChilds = true;
+      if (!reply.getChilds) {
+        reply.childs = [];
+        this.getSubReplies(reply);
+        reply.getChilds = true;
       }
     },
-    
+    getSubReplies: function(reply) {
+      this.$axios
+        .get(`http://192.168.1.7:8000/api/${this.app}/subReply?id=${reply.id}`)
+        .then(response => {
+          let rs = response.data.msg;
+          if (rs) {
+            console.log(rs);
+            for (let sr of rs) {
+              sr["replyBegin"] = false;
+              sr["replyOnFocus"] = false;
+              sr["replyFirstFocus"] = false;
+              sr["replyInputValue"] = "";
+              sr["show"] = true;
+              reply.childs.push(sr);
+            }
+          }
+        });
+    },
+
     replyInput: function(event) {
       this.replyInputValue = event.target.innerText;
     },
@@ -252,9 +275,9 @@ export default {
               reply["replyFirstFocus"] = false;
               reply["replyInputValue"] = "";
               reply["show"] = true;
-              reply['getChilds'] = false;
-              reply['childs'] = [];
-              this.replies.unshift(reply)
+              reply["getChilds"] = false;
+              reply["childs"] = [];
+              this.replies.unshift(reply);
             } else {
               alert(response.data.msg);
             }
@@ -267,7 +290,11 @@ export default {
       } else {
         if (confirm("确定删除该评论吗？")) {
           this.$axios
-            .get(`http://192.168.1.7:8000/api/${this.app}/reply/${reply.id}/delete?level=${level}`)
+            .get(
+              `http://192.168.1.7:8000/api/${this.app}/reply/${
+                reply.id
+              }/delete?level=${level}`
+            )
             .then(response => {
               if (response.data.code === 1) {
                 reply["show"] = false;
@@ -292,13 +319,13 @@ export default {
       if (reply.replyInputValue.length > 1000) {
         alert("回复内容内容过长");
       } else {
-        let url = `http://192.168.1.7:8000/api/${this.app}/subReplyStore`
-        let reply_id = reply.id
-        let to_reply = 0
+        let url = `http://192.168.1.7:8000/api/${this.app}/subReplyStore`;
+        let reply_id = reply.id;
+        let to_reply = 0;
 
-        if(level === 'subreply') {
-          reply_id = reply.reply_id
-          to_reply = reply.id
+        if (level === "subreply") {
+          reply_id = reply.reply_id;
+          to_reply = reply.id;
         }
         this.$axios
           .post(url, {
@@ -310,13 +337,16 @@ export default {
           })
           .then(response => {
             if (response.data.code === 1) {
-              let sr = response.data.msg
+              let sr = response.data.msg;
               sr["replyBegin"] = false;
               sr["replyOnFocus"] = false;
               sr["replyFirstFocus"] = false;
               sr["replyInputValue"] = "";
               sr["show"] = true;
-              parent_reply.childs.push(sr)
+              parent_reply.childs.push(sr);
+
+              parent_reply.displayChilds = true;
+              parent_reply.sub_replies_count++;
               this.replyreplyCancel(reply);
             } else {
               alert(response.data.msg);
@@ -327,7 +357,9 @@ export default {
   },
   watch: {
     artical(n, o) {
-      this.getReplies(this.app, n);
+      if (this.cached_replies[this.app + n.id] === undefined)
+        this.getReplies(this.app, n);
+      else this.replies = this.cached_replies[this.app + n.id];
     }
   }
 };
@@ -465,6 +497,7 @@ export default {
   .show-sub-reply-button {
     font-size: 13px;
     margin-top: 7px;
+    color: darken($color: $gray, $amount: 60);
     cursor: pointer;
     -moz-user-select: none; /*火狐*/
     -webkit-user-select: none; /*webkit浏览器*/

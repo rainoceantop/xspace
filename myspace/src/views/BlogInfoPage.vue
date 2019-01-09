@@ -30,6 +30,7 @@
           </div>
         </aside>
       </footer>
+      <span>{{ blog.replies_count }}条评论</span>
       <Reply app="blog" :artical="blog" v-on:toggleLike="toggleLike"></Reply>
     </div>
   </div>
