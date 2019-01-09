@@ -1,175 +1,127 @@
-@import "../assets/scss/var";
-.like-icon {
-  cursor: pointer;
+@import "var";
+@import "config";
+.container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
-.like-count {
-  margin-left: 7px;
-}
-.reply-area {
-  header {
-    margin-bottom: 1em;
-  }
-  .reply-info {
-    width: 100%;
-    margin-left: 1em;
-  }
-  .replying {
-    width: 100%;
+.blog-info-wrap {
+  width: 70%;
+  padding: 2em 5em;
+  // background-color: yellowgreen;
+  text-align: start;
+  margin-top: 3em;
+  margin-bottom: 20px;
+  border: 1px $gray solid;
+  box-shadow: 5px 8px 15px rgba(0, 0, 0, 0.3);
+
+  .blog-header {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    .reply-input {
-      display: inline-block;
-      width: calc(100% - 20px - 40px);
-      padding: 5px 10px;
-      min-height: 25px;
-      background: none;
-      border-bottom: 1px $gray solid;
-      color: black;
-      outline: none;
-      box-shadow: none;
-      margin-bottom: 20px;
-      transition: width 0.5s ease-in-out;
-      resize: none;
-      &:empty:before {
-        content: attr(placeholder);
-        color: $gray;
-      }
-      &:focus:before {
-        content: none;
-      }
-    }
-  }
-
-  .sub-replying {
-    width: 100%;
-    margin-top: 12px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    .sub-reply-input {
-      display: inline-block;
-      width: calc(100% - 10px - 40px);
-      padding: 5px;
-      min-height: 20px;
-      background: none;
-      border-bottom: 1px $gray solid;
-      color: black;
-      outline: none;
-      box-shadow: none;
-      margin-bottom: 20px;
-      transition: width 0.5s ease-in-out;
-      resize: none;
-      font-size: 10px;
-      &:empty:before {
-        content: attr(placeholder);
-        color: $gray;
-      }
-      &:focus:before {
-        content: none;
-      }
-    }
-  }
-
-  .reply-button {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
     align-items: center;
-
-    .cancel {
-      margin-right: 1em;
+    border-bottom: 1px $gray solid;
+  }
+  #blog-operate-icons {
+    width: 60px;
+    display: flex;
+    justify-content: space-around;
+    #blog-edit-icon,
+    #blog-delete-icon {
       cursor: pointer;
-      color: darken($color: $gray, $amount: 15);
-
+    }
+    #blog-edit-icon {
       &:hover {
-        color: black;
+        color: green;
       }
     }
-    .button-style {
-      width: 80px;
+    #blog-delete-icon {
+      &:hover {
+        color: red;
+      }
     }
   }
-  .reply-list {
-    display: block;
-    width: 100%;
-    .reply-item {
-      display: flex;
-      flex-direction: row;
-      margin-top: 2.5em;
-      .reply-user-name {
-        font-size: 13px;
-        text-decoration: none;
-        color: black;
-      }
-      .reply-time {
-        margin-left: 5px;
-        font-size: 13px;
-        color: $gray;
-      }
-      .reply-body {
-        width: 100%;
-        margin-top: 7px;
-        word-break: break-all;
-        font-size: 15px;
-      }
-    }
-    .reply-footer {
-      margin-top: 0.8em;
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-start;
-      align-items: center;
-      color: darken($gray, 12);
-      font-size: 14px;
+  #title,
+  #body {
+    margin-bottom: 10px;
+    word-wrap: break-word;
+    overflow: auto;
+  }
+  #body {
+    width: calc(100% - 2em);
+    padding: 1em;
+  }
 
-      .reply-reply-button,
-      .reply-delete-button {
-        margin-left: 1em;
-        cursor: pointer;
-      }
-    }
-  }
-  .show-sub-reply-button {
-    font-size: 13px;
-    margin-top: 7px;
-    cursor: pointer;
-    -moz-user-select: none; /*火狐*/
-    -webkit-user-select: none; /*webkit浏览器*/
-    -ms-user-select: none; /*IE10*/
-    -khtml-user-select: none; /*早期浏览器*/
-    user-select: none;
-  }
-  .sub-reply-list {
-    display: block;
+  .artical-footer {
     width: 100%;
-    margin-top: 1em;
-    .sub-reply-item {
-      display: flex;
-      margin-top: 1em;
-      flex-direction: row;
-      .sub-reply-user-name {
-        font-size: 12px;
-      }
-      .sub-reply-time {
-        margin-left: 5px;
-        font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+
+    .left {
+    }
+
+    .right {
+      #post-time {
         color: $gray;
+        font-size: 12px;
+        margin-bottom: 6px;
       }
-      .sub-reply-body {
-        width: 100%;
-        margin-top: 7px;
-        word-break: break-all;
-        font-size: 14px;
+      .author-detail {
+        display: flex;
+        flex-direction: row;
+        justify-content: start;
+
+        #author-name {
+          color: $gray;
+          font-size: 14px;
+          margin-left: 3px;
+          text-decoration: none;
+        }
+
+        #author-follows {
+          color: $gray;
+          font-size: 13px;
+          margin-left: 6px;
+        }
       }
     }
   }
 }
-.progess-bar-1 {
-  width: calc(100% - 40px);
+@include mediaXS {
+  .container {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+  .blog-info-wrap {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100% !important;
+    margin: 0;
+    padding: 1em;
+    border: none;
+  }
 }
-.progess-bar-0,
-.progess-bar-1 {
-  margin-left: 40px;
+@include mediaSm {
+  .container {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+  .blog-info-wrap {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100% !important;
+    margin: 0;
+    padding: 1em;
+    border: none;
+  }
 }

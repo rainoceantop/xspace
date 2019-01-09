@@ -101,6 +101,12 @@ nav {
   width: 100%;
   height: calc(100% - 60px);
   min-height: calc(100vh - 60px - 60px);
+    .like-icon {
+    cursor: pointer;
+  }
+  .like-count {
+    margin-left: 7px;
+  }
 }
 
 #app-footer {

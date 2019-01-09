@@ -12,7 +12,7 @@
       <div>
         <span class="like-icon">
           <font-awesome-icon
-            @click="$emit('toggleLike', $event, 'reply', reply)"
+            @click="$emit('toggleLike', 'breply', reply)"
             :icon="[reply.liked ? 'fas' : 'far','thumbs-up']"
             size="sm"
           />
@@ -55,8 +55,9 @@
 
 <script>
 export default {
+  name: 'replyItem',
   props: {
-    blog: "",
+    forid: "",
     reply: "",
     parent_id: 0
   },
@@ -95,7 +96,7 @@ export default {
       } else {
         this.$axios
           .post("http://192.168.1.7:8000/api/blog/replyStore", {
-            blog_id: this.blog.id,
+            blog_id: this.forid,
             to_reply: reply.id,
             parent_reply: parent_id,
             body: reply.replyInputValue,

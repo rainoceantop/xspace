@@ -1,5 +1,6 @@
 <template>
-  <div class="info">
+<div>
+    <div class="info">
     <div class="photo-view">
       <img
         oncontextmenu="return false"
@@ -14,11 +15,41 @@
     <div v-show="photo" class="caption animated fadeIn">
       <h3 v-if="photo.title">{{ photo.title }}</h3>
       <p>{{ photo.caption }}</p>
+      <div class="photo-footer">
+        <span>
+          <span class="time-area">
+            <font-awesome-icon :icon="['far', 'clock']"/>&nbsp;
+            <span>{{ photo.created_at }}</span>
+          </span>&emsp;
+          <span class="like-area" @click="toggleLike('photo', photo)">
+            <font-awesome-icon v-show="!photo.liked" :icon="['far', 'heart']"/>
+            <font-awesome-icon style="color:red" v-show="photo.liked" :icon="['fas', 'heart']"/>&nbsp;
+            <span>{{ photo.likes }}</span>
+          </span>&emsp;
+          <span class="comment-area">
+            <font-awesome-icon :icon="['far', 'comment']"/>&nbsp;
+            <span>{{ photo.replies_count }}</span>
+          </span>
+        </span>
+        <div>
+          <span class="author-area">
+            <router-link :to="{name: 'myspace', params: {id: photo.author_id}}">
+              <img :src="photo.author_avatar" class="avatar-xs" alt :title="photo.author">
+            </router-link>
+          </span>
+        </div>
+      </div>
     </div>
   </div>
+  <div class="container">
+      <Reply app="photo" :artical="photo" v-on:toggleLike="toggleLike"></Reply>
+  </div>
+</div>
+
 </template>
 
 <script>
+import Reply from "./sub/Reply";
 export default {
   data() {
     return {
@@ -29,6 +60,7 @@ export default {
     this.getPhoto(this.photoid);
   },
   props: ["photoid"],
+  components:{Reply},
   methods: {
     getPhoto: function(id) {
       if (id !== undefined) {
@@ -43,6 +75,30 @@ export default {
             }
           });
       }
+    },
+    toggleLike: function(way, item) {
+      // 判断是点赞还是取消点赞
+      let aor = item.liked ? "rem" : "add";
+      item.likes = item.liked ? item.likes - 1 : item.likes + 1;
+      // 先把样式改了
+      item.liked = item.liked ? false : true;
+      let url = `http://192.168.1.7:8000/api/photo/likes?way=${way}&id=${
+        item.id
+      }&aor=${aor}`;
+      this.$axios
+        .get(url)
+        .then(response => {
+          if (response.data.code !== 1) {
+            item.likes = item.liked ? item.likes - 1 : item.likes + 1;
+            item.liked = item.liked ? false : true;
+            alert(response.data.msg);
+          }
+        })
+        .catch(error => {
+          item.likes = item.liked ? item.likes - 1 : item.likes + 1;
+          item.liked = item.liked ? false : true;
+          alert(response.data.msg);
+        });
     }
   },
   watch: {
@@ -55,63 +111,6 @@ export default {
 
 
 
-<style lang="scss" scoped>
-@import "../assets/scss/var";
-@import "../assets/scss/config";
-.info {
-  width: 100%;
-  height: calc(100vh - 60px);
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  @include easeOut;
-  .photo,
-  .photo-view {
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    @include easeOut;
-  }
-  .photo {
-    background-size: cover;
-    background-position: left center;
-  }
-  .photo-view {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-}
-.the-photo {
-  max-width: 100%;
-  max-height: 100%;
-}
-.caption {
-  background-image: -webkit-linear-gradient(
-    bottom,
-    rgba(16, 16, 16, 0.75),
-    rgba(16, 16, 16, 0.25) 80%,
-    rgba(16, 16, 16, 0)
-  );
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  -o-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  box-sizing: border-box;
-  width: inherit;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  padding: 2em;
-  h3,
-  p {
-    color: $main-color;
-    z-index: 1;
-    word-wrap: break-word;
-  }
-  h3 {
-    padding-bottom: 15px;
-  }
-}
+<style lang="scss">
+@import '../assets/scss/photo_info';
 </style>

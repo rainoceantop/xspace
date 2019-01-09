@@ -27,18 +27,38 @@ class BlogReply(models.Model):
     blog = models.ForeignKey(
         Blog, to_field='id', on_delete=models.CASCADE, related_name='replies')
     body = models.CharField(max_length=1000, null=False)
-    to_reply = models.IntegerField(null=False, default=0)
-    parent_reply = models.IntegerField(null=False, default=0)
     from_user = models.ForeignKey(
-        User, to_field='username', on_delete=models.CASCADE, related_name='my_replies')
+        User, to_field='username', on_delete=models.CASCADE, related_name='blog_replies')
     to_user = models.ForeignKey(
-        User, to_field='username', on_delete=models.CASCADE, related_name='my_replied')
+        User, to_field='username', on_delete=models.CASCADE, related_name='blog_replied')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'blog_reply'
         verbose_name = 'BlogReply'
+
+    def __str__(self):
+        return self.body
+
+
+class BlogSubReply(models.Model):
+    blog = models.ForeignKey(
+        Blog, to_field='id', on_delete=models.CASCADE, related_name='sub_replies')
+    reply = models.ForeignKey(BlogReply, to_field='id',
+                              on_delete=models.CASCADE, related_name='sub_replies')
+    body = models.CharField(max_length=1000, null=False)
+    to_reply = models.IntegerField(null=False, default=0)
+    from_user = models.ForeignKey(
+        User, to_field='username', on_delete=models.CASCADE, related_name='blog_sub_replies')
+    to_user = models.ForeignKey(
+        User, to_field='username', on_delete=models.CASCADE, related_name='blog_sub_replied')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'blog_sub_reply'
+        verbose_name = 'BlogSubReply'
 
     def __str__(self):
         return self.body
