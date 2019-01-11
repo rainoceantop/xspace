@@ -36,6 +36,7 @@
             class="new-icon animated fadeIn"
             id="new-photo-icon"
             v-show="newopen"
+            @click.native="photoCreate()"
             :to="{name: 'photoCreate', params: {id: undefined}}"
           ></router-link>
           <router-link
@@ -97,8 +98,11 @@
             :blog="blog"
             v-on:editBlog="editBlog"
             v-on:blogCreateDone="blogCreateDone"
-            v-on:photoCreateDone="photoCreateDone"
             v-on:blogDeleteDone="blogDeleteDone"
+            :piscreate="piscreate"
+            :photo="photo"
+            v-on:editPhoto="editPhoto"
+            v-on:photoCreateDone="photoCreateDone"
           ></router-view>
         </keep-alive>
       </div>
@@ -298,8 +302,12 @@ export default {
     },
     photoCreateDone: function(data) {
       this.currentThumbnail = PhotoThumbnail;
-      this.photos.unshift(data);
-      this.showPhoto(data.id);
+      if (this.piscreate) {
+        this.photos.unshift(data);
+        this.showPhoto(data.id);
+      } else {
+        this.showPhoto(data);
+      }
     },
     showBlog: function(id) {
       this.$router.push({
@@ -318,7 +326,16 @@ export default {
       this.blog = blog;
       this.$router.push({ name: "blogCreate", params: { id: undefined } });
     },
-    photoCreate: function() {},
+    editPhoto: function(photo) {
+      this.piscreate = false;
+      this.photo = photo;
+      this.$router.push({ name: "photoCreate", params: { id: undefined } });
+    },
+    photoCreate: function() {
+      this.piscreate = true;
+      this.photo = "";
+      this.l_show = true;
+    },
     blogCreate: function() {
       this.biscreate = true;
       this.blog = "";

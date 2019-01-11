@@ -32,8 +32,20 @@
   color: $gray;
 
   .like-area,
-  .comment-area {
+  .comment-area,
+  .edit-area,
+  .delete-area {
     cursor: pointer;
+  }
+  .edit-area{
+    &:hover{
+      color: green;
+    }
+  }
+  .delete-area{
+    &:hover{
+      color:red;
+    }
   }
 }
 

@@ -5,7 +5,7 @@
         <div v-if="photoUrl" class="form-item display-photo">
           <img :src="photoUrl + '-display'" alt>
         </div>
-        <div class="form-item">
+        <div v-if="piscreate" class="form-item">
           <div class="label">*图片</div>
           <button @click="choicePhoto" :disabled="onUpload" type="button" class="button-style">
             {{ uploadLabel }}
@@ -50,7 +50,23 @@ export default {
       used_photo: ""
     };
   },
+  props: {
+    photo: "",
+    piscreate: true
+  },
   methods: {
+    initData: function() {
+      this.title = "";
+      this.caption = "";
+      this.photoUrl = "";
+      if (!this.piscreate) {
+        if (this.photo) {
+          this.title = this.photo.title;
+          this.caption = this.photo.caption;
+          this.photoUrl = this.photo.url;
+        }
+      }
+    },
     submit: function() {
       if (!this.photoUrl) {
         alert("请选择需要上传的图片");
@@ -68,8 +84,12 @@ export default {
         alert("说明不能超过500个字符");
         return;
       }
+      let url = "http://192.168.1.7:8000/api/photo/store";
+      if (!this.piscreate) {
+        url = `http://192.168.1.7:8000/api/photo/${this.photo.id}/update`;
+      }
       this.$axios
-        .post("http://192.168.1.7:8000/api/photo/store", {
+        .post(url, {
           photoUrl: this.photoUrl,
           title: this.title,
           caption: this.caption
@@ -110,9 +130,16 @@ export default {
       });
     }
   },
+
+  mounted() {
+    this.initData();
+  },
   watch: {
     photoUrl(n, o) {
       this.used_photo = n;
+    },
+    photo(n, o) {
+      this.initData();
     }
   }
 };

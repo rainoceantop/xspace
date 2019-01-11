@@ -66,7 +66,7 @@ class PhotoStore(View):
     def post(self, request):
         # 判断是否已经登陆
         if not request.user.is_authenticated:
-            return JsonResponse({'code': 4, 'msg': '上传图片请先登录'})
+            return JsonResponse({'code': 4, 'msg': '发表图片请先登录'})
         data = json.loads(request.body)
         url = data['photoUrl'].strip()
         title = data['title'].strip()
@@ -87,6 +87,70 @@ class PhotoStore(View):
             author_id=request.user.username
         )
         return JsonResponse({'code': 1, 'msg': {'id': photo.id, 'url': '{}-thumbnail'.format(photo.url)}})
+
+
+class PhotoUpdate(View):
+    def post(self, request, id):
+        # 判断是否已经登陆
+        if not request.user.is_authenticated:
+            return JsonResponse({'code': 4, 'msg': '修改图片请先登录'})
+        data = json.loads(request.body)
+        title = data['title'].strip()
+        caption = data['caption'].strip()
+
+        if len(title) > 50:
+            return JsonResponse({'code': 2, 'msg': '标题不能超过50个字符'})
+        if len(caption) is 0 or len(caption) > 500:
+            return JsonResponse({'code': 2, 'msg': '图片说明不能为空且不超过500个字符'})
+
+        try:
+            photo = Photo.objects.get(pk=id)
+            if photo.author_id == request.user.username:
+                photo.title = title
+                photo.caption = caption
+                photo.save()
+                return JsonResponse({'code': 1, 'msg': photo.id})
+            return JsonResponse({'code': 5, 'msg': '修改失败，无权修改'})
+        except exceptions.ObjectDoesNotExist:
+            return JsonResponse({'code': 3, 'msg': '找不到该图片'})
+
+
+class PhotoDelete(View):
+    def get(self, request, id):
+        if not request.user.is_authenticated:
+            return JsonResponse({'code': 4, 'msg': '修改图片请先登录'})
+        try:
+            photo = Photo.objects.get(pk=id)
+            redis = get_redis()
+            if photo.author_id == request.user.username:
+                access_key = 'M2TrolxfManTFNP4Clr3M12JW0tvAaCV0xIbrZk5'
+                secret_key = 'Llh0byt0KDHwiFlcNVvPiTpQSrH8IrZSt5puu1zS'
+
+                q = qiniu_auth(access_key, secret_key)
+                bucket_name = 'photo'
+                try:
+                    bucket = BucketManager(q)
+                    key = os.path.basename(photo.url)
+                    ret, info = bucket.delete(bucket_name, key)
+                    assert ret == {}
+                except Exception as e:
+                    pass
+
+                # 删除该博客的所有评论点赞数
+                for r in photo.replies.all():
+                    redis.delete('preply:{}:likes'.format(r.id))
+                for r in photo.sub_replies.all():
+                    redis.delete('psreply:{}:likes'.format(r.id))
+
+                # 删除博客点赞
+                redis.delete('photo:{}:likes'.format(id))
+
+                # 删除博客
+                photo.delete()
+                return JsonResponse({'code': 1, 'msg': '删除成功'})
+            return JsonResponse({'code': 3, 'msg': '删除失败，无权删除'})
+        except exceptions.ObjectDoesNotExist:
+            return JsonResponse({'code': 2, 'msg': '删除失败，没有该图片'})
 
 
 class PhotoUpload(View):

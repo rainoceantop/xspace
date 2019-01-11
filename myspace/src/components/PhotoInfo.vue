@@ -29,6 +29,22 @@
             <span class="comment-area">
               <font-awesome-icon :icon="['far', 'comment']"/>&nbsp;
               <span>{{ photo.replies_count }}</span>
+            </span>&emsp;
+            <span
+              v-if="photo.author_id === $store.state.id"
+              class="edit-area"
+              @click="photoEdit(photo)"
+            >
+              <font-awesome-icon :icon="['far', 'edit']"></font-awesome-icon>&nbsp;
+              <span>编辑</span>
+            </span>&emsp;
+            <span
+              v-if="photo.author_id === $store.state.id"
+              class="delete-area"
+              @click="photoDelete(photo.id, photo.author_id)"
+            >
+              <font-awesome-icon :icon="['far', 'trash-alt']"></font-awesome-icon>&nbsp;
+              <span>删除</span>
             </span>
           </span>
           <div>
@@ -100,7 +116,31 @@ export default {
           item.liked = item.liked ? false : true;
           alert(response.data.msg);
         });
+    },
+    photoEdit: function(photo) {
+      delete this.cached_photos[photo.id];
+      this.$emit("editPhoto", photo);
+    },
+    photoDelete: function(photo_id, author_id) {
+      if (author_id !== this.$store.state.id) {
+        alert("抱歉，你无权删除");
+      } else {
+        if (confirm("确定删除该图片吗？")) {
+          this.$axios
+            .get(`http://192.168.1.7:8000/api/photo/${photo_id}/delete`)
+            .then(response => {
+              if (response.data.code === 1) {
+                this.$emit("photoDeleteDone", photo_id);
+              } else {
+                alert(response.data.msg);
+              }
+            });
+        }
+      }
     }
+  },
+  activated() {
+    if (!this.cached_photos[this.photoid]) this.getPhoto(this.photoid);
   },
   watch: {
     photoid(n, o) {

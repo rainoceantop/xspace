@@ -15,5 +15,7 @@ urlpatterns = [
     path('reply/<int:id>/delete', views.PhotoReplyDelete.as_view()),
 
     path('<str:id>', views.PhotoGet.as_view()),
+    path('<str:id>/update', views.PhotoUpdate.as_view()),
+    path('<str:id>/delete', views.PhotoDelete.as_view()),
     path('<str:username>/photoset', views.PhotoSet.as_view()),
 ]

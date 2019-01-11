@@ -114,7 +114,7 @@ class BlogUpdate(View):
                 blog.body = body
                 blog.save()
                 return JsonResponse({'code': 1, 'msg': blog.id})
-            return JsonResponse({'code': 8, 'msg': '修改失败，你无权修改别人的博客'})
+            return JsonResponse({'code': 8, 'msg': '修改失败，无权修改'})
         except exceptions.ObjectDoesNotExist:
             return JsonResponse({'code': 2, 'msg': '修改失败，没有该博客'})
 
@@ -140,7 +140,7 @@ class BlogDelete(View):
                 # 删除博客
                 blog.delete()
                 return JsonResponse({'code': 1, 'msg': '删除成功'})
-            return JsonResponse({'code': 3, 'msg': '删除失败，你无权删除别人的博客'})
+            return JsonResponse({'code': 3, 'msg': '删除失败，无权删除'})
         except exceptions.ObjectDoesNotExist:
             return JsonResponse({'code': 2, 'msg': '删除失败，没有该博客'})
 

@@ -4,11 +4,7 @@
       <div class="blog-header">
         <h3 id="title">{{ blog.title }}</h3>
         <div v-if="blog.author_id === $store.state.id" id="blog-operate-icons">
-          <font-awesome-icon
-            id="blog-edit-icon"
-            :icon="['fas', 'edit']"
-            @click="$emit('editBlog', blog)"
-          />
+          <font-awesome-icon id="blog-edit-icon" :icon="['fas', 'edit']" @click="blogEdit(blog)"/>
           <font-awesome-icon
             id="blog-delete-icon"
             :icon="['fas', 'trash']"
@@ -82,6 +78,10 @@ export default {
           });
       }
     },
+    blogEdit: function(blog) {
+      delete this.cached_blogs[blog.id];
+      this.$emit("editBlog", blog);
+    },
     blogDelete: function(blog_id, author_id) {
       if (author_id !== this.$store.state.id) {
         alert("抱歉，你无权删除");
@@ -123,6 +123,9 @@ export default {
           alert(response.data.msg);
         });
     }
+  },
+  activated() {
+    if (!this.cached_blogs[this.blogid]) this.getBlog(this.blogid);
   },
   watch: {
     blogid: function(newid, oldid) {
