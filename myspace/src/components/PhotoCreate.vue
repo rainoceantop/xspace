@@ -96,6 +96,7 @@ export default {
         })
         .then(response => {
           if (response.data.code === 1) {
+            this.initData();
             this.$emit("photoCreateDone", response.data.msg);
           } else alert(response.data.msg);
         });

@@ -3,7 +3,7 @@
     <router-link
       v-for="blog in blogs"
       :key="blog.id"
-      :class="['the-thumbnail', onfocus == blog.id ? 'shadow':'']"
+      :class="['the-thumbnail', $route.params.blogid == blog.id ? 'shadow':'']"
       @click.native="$emit('showLeft')"
       :to="{name: 'blogInfo', params: {id: undefined, blogid: blog.id}}"
     >
@@ -47,12 +47,9 @@ export default {
   padding: 10px 0;
 
   a {
+    position: relative;
     text-decoration: none;
     color: rgba($color: #000000, $alpha: 0.7);
-  }
-
-  a.router-link-exact-active {
-    color: aquamarine;
   }
 
   .the-thumbnail {
@@ -70,7 +67,7 @@ export default {
     background-repeat: no-repeat;
 
     &:hover {
-      box-shadow: inset 0 0 15px $blue;
+      box-shadow: inset 0 0 25px $green;
     }
 
     p {
@@ -85,7 +82,7 @@ export default {
     }
   }
   .shadow {
-    box-shadow: inset 0 0 15px $blue;
+    box-shadow: inset 0 0 25px $green;
   }
 }
 </style>

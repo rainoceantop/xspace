@@ -1,6 +1,18 @@
 <template>
   <div>
     <div class="info">
+      <div class="inner">
+        <router-link
+          v-show="next"
+          class="nav-next animated zoomIn"
+          :to="{name: 'photoInfo', params: {id:undefined, photoid: next}}"
+        ></router-link>
+        <router-link
+          v-show="prev"
+          class="nav-prev animated zoomIn"
+          :to="{name: 'photoInfo', params: {id:undefined, photoid: prev}}"
+        ></router-link>
+      </div>
       <div class="photo-view">
         <img
           oncontextmenu="return false"
@@ -73,9 +85,11 @@ export default {
     };
   },
   created() {
+    this.$emit("countPN", this.photoid);
+
     this.getPhoto(this.photoid);
   },
-  props: ["photoid"],
+  props: ["photoid", "prev", "next"],
   components: { Reply },
   methods: {
     getPhoto: function(id) {
@@ -130,6 +144,7 @@ export default {
             .get(`http://192.168.1.7:8000/api/photo/${photo_id}/delete`)
             .then(response => {
               if (response.data.code === 1) {
+                delete this.cached_photos[photo_id];
                 this.$emit("photoDeleteDone", photo_id);
               } else {
                 alert(response.data.msg);
@@ -140,17 +155,23 @@ export default {
     }
   },
   activated() {
+    // 获取图片
     if (!this.cached_photos[this.photoid]) this.getPhoto(this.photoid);
+
+    // 获取图片上下文图片
+    this.$emit("countPN", this.photoid);
   },
   watch: {
     photoid(n, o) {
+      // 获取当前图片
       if (this.cached_photos[n] === undefined) this.getPhoto(n);
       else this.photo = this.cached_photos[n];
+      // 获取图片上下文图片
+      this.$emit("countPN", this.photoid);
     }
   }
 };
 </script>
-
 
 
 <style lang="scss">

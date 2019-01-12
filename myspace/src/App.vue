@@ -109,6 +109,45 @@ nav {
   .like-count {
     margin-left: 7px;
   }
+
+  .inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+
+    * {
+      pointer-events: auto;
+    }
+
+    .nav-next,
+    .nav-prev {
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      position: absolute;
+      top: calc((100vh - 60px) / 2);
+      width: 6em;
+      height: 6em;
+      margin-top: -3em;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      cursor: pointer;
+    }
+
+    .nav-next {
+      right: 0;
+      background-image: url("./assets/images/arrow.svg");
+    }
+
+    .nav-prev {
+      transform: scaleX(-1);
+      left: 0;
+      background-image: url("./assets/images/arrow.svg");
+    }
+  }
 }
 
 #app-footer {

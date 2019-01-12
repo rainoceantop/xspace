@@ -1,45 +1,59 @@
 <template>
-  <div class="container">
-    <div class="blog-info-wrap">
-      <div class="blog-header">
-        <h3 id="title">{{ blog.title }}</h3>
-        <div v-if="blog.author_id === $store.state.id" id="blog-operate-icons">
-          <font-awesome-icon id="blog-edit-icon" :icon="['fas', 'edit']" @click="blogEdit(blog)"/>
-          <font-awesome-icon
-            id="blog-delete-icon"
-            :icon="['fas', 'trash']"
-            @click="blogDelete(blog.id, blog.author_id)"
-          />
-        </div>
-      </div>
-      <div v-html="blog.body" id="body"></div>
-      <footer class="artical-footer">
-        <aside class="left">
-          <span class="like-icon">
-            <font-awesome-icon @click="toggleLike('blog', blog)" :icon="blogIcon" size="lg"/>
-          </span>
-          <span class="like-count">{{ blog.likes }}</span>
-        </aside>
-        <aside class="right">
-          <p id="post-time">发表时间：{{ blog.created_at }}</p>
-          <div class="author-detail">
-            <div>
-              <router-link :to="{name: 'myspace', params: {id: blog.author_id}}">
-                <img class="avatar-sm" :src="blog.author_avatar" alt>
-              </router-link>
-            </div>
-            <div>
-              <router-link
-                :to="{name: 'myspace', params: {id: blog.author_id}}"
-                id="author-name"
-              >{{ blog.author }}</router-link>
-              <p id="author-follows">{{ blog.author_follows }}关注·{{ blog.author_fans }}粉丝</p>
-            </div>
+  <div style="position:relative">
+    <div class="inner">
+      <router-link
+        v-show="next"
+        class="nav-next animated zoomIn"
+        :to="{name: 'blogInfo', params: {id:undefined, blogid: next}}"
+      ></router-link>
+      <router-link
+        v-show="prev"
+        class="nav-prev animated zoomIn"
+        :to="{name: 'blogInfo', params: {id:undefined, blogid: prev}}"
+      ></router-link>
+    </div>
+    <div class="container">
+      <div class="blog-info-wrap">
+        <div class="blog-header">
+          <h3 id="title">{{ blog.title }}</h3>
+          <div v-if="blog.author_id === $store.state.id" id="blog-operate-icons">
+            <font-awesome-icon id="blog-edit-icon" :icon="['fas', 'edit']" @click="blogEdit(blog)"/>
+            <font-awesome-icon
+              id="blog-delete-icon"
+              :icon="['fas', 'trash']"
+              @click="blogDelete(blog.id, blog.author_id)"
+            />
           </div>
-        </aside>
-      </footer>
-      <span>{{ blog.replies_count }}条评论</span>
-      <Reply app="blog" :artical="blog" v-on:toggleLike="toggleLike"></Reply>
+        </div>
+        <div v-html="blog.body" id="body"></div>
+        <footer class="artical-footer">
+          <aside class="left">
+            <span class="like-icon">
+              <font-awesome-icon @click="toggleLike('blog', blog)" :icon="blogIcon" size="lg"/>
+            </span>
+            <span class="like-count">{{ blog.likes }}</span>
+          </aside>
+          <aside class="right">
+            <p id="post-time">发表时间：{{ blog.created_at }}</p>
+            <div class="author-detail">
+              <div>
+                <router-link :to="{name: 'myspace', params: {id: blog.author_id}}">
+                  <img class="avatar-sm" :src="blog.author_avatar" alt>
+                </router-link>
+              </div>
+              <div>
+                <router-link
+                  :to="{name: 'myspace', params: {id: blog.author_id}}"
+                  id="author-name"
+                >{{ blog.author }}</router-link>
+                <p id="author-follows">{{ blog.author_follows }}关注·{{ blog.author_fans }}粉丝</p>
+              </div>
+            </div>
+          </aside>
+        </footer>
+        <span>{{ blog.replies_count }}条评论</span>
+        <Reply app="blog" :artical="blog" v-on:toggleLike="toggleLike"></Reply>
+      </div>
     </div>
   </div>
 </template>
@@ -57,12 +71,13 @@ export default {
     };
   },
   created() {
+    this.$emit("countPN", this.blogid);
     this.getBlog(this.blogid);
   },
   components: {
     Reply
   },
-  props: ["blogid"],
+  props: ["blogid", "prev", "next"],
   methods: {
     getBlog: function(id) {
       if (id !== undefined) {
@@ -91,6 +106,7 @@ export default {
             .get(`http://192.168.1.7:8000/api/blog/${blog_id}/delete`)
             .then(response => {
               if (response.data.code === 1) {
+                delete this.cached_blogs[blog_id];
                 this.$emit("blogDeleteDone", blog_id);
               } else {
                 alert(response.data.msg);
@@ -126,11 +142,16 @@ export default {
   },
   activated() {
     if (!this.cached_blogs[this.blogid]) this.getBlog(this.blogid);
+    // 获取博客上下文博客
+    this.$emit("countPN", this.blogid);
   },
   watch: {
     blogid: function(newid, oldid) {
+      // 获取博客
       if (this.cached_blogs[newid] === undefined) this.getBlog(newid);
       else this.blog = this.cached_blogs[newid];
+      // 获取博客上下文博客
+      this.$emit("countPN", this.blogid);
     }
   },
   computed: {

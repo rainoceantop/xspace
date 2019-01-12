@@ -103,6 +103,10 @@
             :photo="photo"
             v-on:editPhoto="editPhoto"
             v-on:photoCreateDone="photoCreateDone"
+            v-on:photoDeleteDone="photoDeleteDone"
+            :prev="prevappid"
+            :next="nextappid"
+            v-on:countPN="countPN"
           ></router-view>
         </keep-alive>
       </div>
@@ -140,17 +144,18 @@ export default {
       open: true,
       newopen: false,
       newopenstyle: "width:60px",
-      currentThumbnail: BlogThumbnail,
+      currentThumbnail: "BlogThumbnail",
 
-      prevappid: "nomore",
       biscreate: true, // 是否创建，否为编辑
       blog: "", // 更新博客需要参数
-      nextappid: "nomore",
       blogs: "",
 
       piscreate: true,
       photo: "",
       photos: "",
+
+      prevappid: "",
+      nextappid: "",
 
       l_show: true
     };
@@ -167,7 +172,7 @@ export default {
     this.cid = this.id;
     this.init();
   },
-  props: ["id", "appid"],
+  props: ["id"],
   methods: {
     init() {
       this.getUserDetail();
@@ -282,32 +287,42 @@ export default {
         });
     },
     blogCreateDone: function(data) {
-      this.currentThumbnail = BlogThumbnail;
+      this.currentThumbnail = "BlogThumbnail";
       if (this.biscreate) {
-        this.blogs.unshift(data);
+        if (this.blogs) {
+          this.blogs.unshift(data);
+        }
         this.showBlog(data.id);
       } else {
         this.showBlog(data);
       }
     },
-    blogDeleteDone: function(appid) {
+    blogDeleteDone: function(id) {
       for (let i = 0; i < this.blogs.length; i++) {
-        if (this.blogs[i].id === appid) {
+        if (this.blogs[i].id === id) {
           this.blogs.splice(i, 1);
         }
       }
-      this.showBlog(
-        this.nextappid === "nomore" ? this.prevappid : this.nextappid
-      );
+      this.showBlog(this.nextappid === "" ? this.prevappid : this.nextappid);
     },
     photoCreateDone: function(data) {
-      this.currentThumbnail = PhotoThumbnail;
+      this.currentThumbnail = "PhotoThumbnail";
       if (this.piscreate) {
-        this.photos.unshift(data);
+        if (this.photos) {
+          this.photos.unshift(data);
+        }
         this.showPhoto(data.id);
       } else {
         this.showPhoto(data);
       }
+    },
+    photoDeleteDone: function(id) {
+      for (let i = 0; i < this.photos.length; i++) {
+        if (this.photos[i].id === id) {
+          this.photos.splice(i, 1);
+        }
+      }
+      this.showPhoto(this.nextappid === "" ? this.prevappid : this.nextappid);
     },
     showBlog: function(id) {
       this.$router.push({
@@ -341,18 +356,20 @@ export default {
       this.blog = "";
       this.l_show = true;
     },
-    countBlogPN: function(id) {
-      for (let i = 0; i < this.blogs.length; i++) {
-        if (this.blogs[i].id == id) {
-          if (this.blogs[i - 1] !== undefined) {
-            this.prevappid = this.blogs[i - 1].id;
+    countPN: function(id) {
+      let app = this.photos;
+      if (this.appid === "blog") app = this.blogs;
+      for (let i = 0; i < app.length; i++) {
+        if (app[i].id == id) {
+          if (app[i - 1] !== undefined) {
+            this.prevappid = app[i - 1].id;
           } else {
-            this.prevappid = "nomore";
+            this.prevappid = "";
           }
-          if (this.blogs[i + 1] !== undefined) {
-            this.nextappid = this.blogs[i + 1].id;
+          if (app[i + 1] !== undefined) {
+            this.nextappid = app[i + 1].id;
           } else {
-            this.nextappid = "nomore";
+            this.nextappid = "";
           }
         }
       }
@@ -361,17 +378,17 @@ export default {
   computed: {
     isSelf: function() {
       return this.cid == this.$store.state.id;
+    },
+    appid: function() {
+      return this.currentThumbnail === "PhotoThumbnail" ? "photo" : "blog";
     }
   },
   watch: {
-    appid(newid, oldid) {
-      this.countBlogPN(newid);
-    },
     id(newid, oldid) {
       if (newid !== undefined) {
         if (this.cid != newid) {
           this.cid = newid;
-          this.currentThumbnail = BlogThumbnail;
+          this.currentThumbnail = "BlogThumbnail";
           this.init();
         }
       }

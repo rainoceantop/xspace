@@ -3,8 +3,9 @@
     <router-link
       v-for="photo in photos"
       :key="photo.id"
-      :class="['the-thumbnail', onfocus == photo.id ? 'shadow':'']"
+      :class="['the-thumbnail', $route.params.photoid == photo.id ? 'shadow':'']"
       :style="{'background-image': 'url('+photo.url+')'}"
+      tabindex="-1"
       @click.native="$emit('showLeft')"
       :to="{name: 'photoInfo', params: {id: undefined, photoid: photo.id}}"
     ></router-link>
@@ -52,11 +53,11 @@ export default {
     background-repeat: no-repeat;
 
     &:hover {
-      box-shadow: inset 0 0 15px $blue;
+      box-shadow: inset 0 0 25px $green;
     }
   }
   .shadow {
-    box-shadow: inset 0 0 15px $blue;
+    box-shadow: inset 0 0 25px $green;
   }
 }
 </style>
