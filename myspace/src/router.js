@@ -15,6 +15,7 @@ import AvatarChange from './components/AvatarChange'
 import BlogInfoPage from './views/BlogInfoPage'
 import PhotoInfoPage from './views/PhotoInfoPage'
 import Home from './views/Home'
+import Moments from './views/Moments'
 
 
 Vue.use(Router)
@@ -26,6 +27,11 @@ const router = new Router({
       path: '/',
       name: 'home',
       component: Home
+    },
+    {
+      path: '/moments',
+      name: 'moments',
+      component: Moments
     },
     {
       path: '/b/:blogid',

@@ -10,8 +10,13 @@ class Blog(models.Model):
     id = models.CharField(primary_key=True, max_length=22, null=False)
     title = models.CharField(max_length=200, null=False)
     body = models.TextField(null=False)
+    caption = models.CharField(max_length=4,
+                               null=True, verbose_name="photo_column_caption")
+    url = models.CharField(max_length=4, null=True,
+                           verbose_name="photo_column_url")
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='blogs', to_field='username')
+    app = models.CharField(max_length=10, null=False, default='blog')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

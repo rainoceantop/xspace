@@ -2,11 +2,18 @@
   <main id="app">
     <nav>
       <ul class="container">
-        <router-link :to="{name: 'home'}">首页</router-link>
+        <router-link :to="{name: 'home'}">
+          <img src="./assets/images/explore.png">
+        </router-link>
+        <router-link :to="{name: 'moments'}">
+          <img src="./assets/images/circle.png">
+        </router-link>
         <router-link
           v-if="$store.state.login"
           :to="{name: 'myspace', params: {id: $store.state.id}}"
-        >我的空间</router-link>
+        >
+          <img src="./assets/images/user.png">
+        </router-link>
         <router-link v-if="!$store.state.login" :to="{name: 'login'}">登录</router-link>
         <router-link v-if="!$store.state.login" :to="{name: 'register'}">注册</router-link>
       </ul>

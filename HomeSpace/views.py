@@ -1,16 +1,18 @@
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.contrib.auth.models import User
+from django.core.serializers import serialize
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.hashers import check_password
 from django.core.files.storage import FileSystemStorage
-
+from MyBlog.models import Blog
+from MyPhoto.models import Photo
 import json
 import re
 import os
 import time
 from django.core import exceptions
-from MyHome.utils import get_redis
+from MyHome.utils import get_redis, ConvertTime
 from qiniu import Auth as qiniu_auth
 from qiniu import put_file, etag, BucketManager, CdnManager
 import qiniu.config
@@ -134,9 +136,9 @@ class GetFollows(View):
         redis_key = "user:{}:follows".format(uid)
         follows = redis.smembers(redis_key)
         follows_detail = []
-        follow_detail = {}
         for follow in follows:
             follow_key = "user:{}:detail".format(follow.decode())
+            follow_detail = {}
             if redis.hget(follow_key, 'username') is not None:
                 follow_detail['username'] = redis.hget(
                     follow_key, 'username').decode()
@@ -162,9 +164,9 @@ class GetFans(View):
         redis_key = "user:{}:fans".format(uid)
         fans = redis.smembers(redis_key)
         fans_detail = []
-        fan_detail = {}
         for fan in fans:
             fan_key = "user:{}:detail".format(fan.decode())
+            fan_detail = {}
             if redis.hget(fan_key, 'username') is not None:
                 fan_detail['username'] = redis.hget(
                     fan_key, 'username').decode()
@@ -356,6 +358,47 @@ class UpdateDetail(View):
             user.first_name = firstname
             user.save()
         return JsonResponse({'code': 1, 'msg': '更新成功'})
+
+
+class GetMoments(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({'code': 2, 'msg': '用户尚未登录'})
+
+        redis = get_redis()
+        ct = ConvertTime()
+        follows = redis.smembers(
+            'user:{}:follows'.format(request.user.username))
+        follows = [follow.decode() for follow in follows]
+        follows.append(request.user.username)
+        qs = Blog.objects.filter(author_id__in=follows).union(
+            Photo.objects.filter(author_id__in=follows)).order_by('-created_at')
+        items = []
+        for r in qs:
+            item = {}
+            item['id'] = r.id
+            item['title'] = r.title
+            item['app'] = r.app
+            item['author_id'] = r.author_id
+            item['created_at'] = ct.convertDatetime(r.created_at)
+            item['author'] = redis.hget("user:{}:detail".format(
+                r.author_id), 'nickname').decode()
+            item['author_avatar'] = redis.hget(
+                "user:{}:detail".format(r.author_id), 'avatar').decode()
+            item['replies_count'] = r.replies.count() + r.sub_replies.count()
+            if(r.app == 'blog'):
+                item['body'] = r.body
+                item['likes'] = redis.scard('blog:{}:likes'.format(r.id))
+                item['liked'] = redis.sismember(
+                    'blog:{}:likes'.format(r.id), request.user.username)
+            else:
+                item['url'] = r.url
+                item['caption'] = r.caption
+                item['likes'] = redis.scard('photo:{}:likes'.format(r.id))
+                item['liked'] = redis.sismember(
+                    'photo:{}:likes'.format(r.id), request.user.username)
+            items.append(item)
+        return JsonResponse({'data': items})
 
 
 def get_user_detail(uid):
