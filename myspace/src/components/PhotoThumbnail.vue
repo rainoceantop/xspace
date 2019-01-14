@@ -7,7 +7,7 @@
       :style="{'background-image': 'url('+photo.url+')'}"
       tabindex="-1"
       @click.native="$emit('showLeft')"
-      :to="{name: 'photoInfo', params: {id: undefined, photoid: photo.id}}"
+      :to="{name: 'photoInfo', params: {id: uid, photoid: photo.id}}"
     ></router-link>
   </article>
 </template>

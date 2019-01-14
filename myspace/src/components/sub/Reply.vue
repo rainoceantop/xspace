@@ -196,6 +196,9 @@ export default {
     };
   },
   props: ["app", "artical"],
+  created() {
+    this.getReplies(this.app, this.artical);
+  },
   methods: {
     getReplies: function(app, artical) {
       this.$axios

@@ -5,7 +5,7 @@
       :key="blog.id"
       :class="['the-thumbnail', $route.params.blogid == blog.id ? 'shadow':'']"
       @click.native="$emit('showLeft')"
-      :to="{name: 'blogInfo', params: {id: undefined, blogid: blog.id}}"
+      :to="{name: 'blogInfo', params: {id: uid, blogid: blog.id}}"
     >
       <p>{{ blog.title }}</p>
     </router-link>

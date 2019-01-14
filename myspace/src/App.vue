@@ -5,7 +5,7 @@
         <router-link :to="{name: 'home'}">
           <img src="./assets/images/explore.png">
         </router-link>
-        <router-link :to="{name: 'moments'}">
+        <router-link v-if="$store.state.login" :to="{name: 'moments'}">
           <img src="./assets/images/circle.png">
         </router-link>
         <router-link

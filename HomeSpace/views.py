@@ -5,6 +5,7 @@ from django.core.serializers import serialize
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.hashers import check_password
 from django.core.files.storage import FileSystemStorage
+from django.db.models import Count
 from MyBlog.models import Blog
 from MyPhoto.models import Photo
 import json
@@ -371,8 +372,8 @@ class GetMoments(View):
             'user:{}:follows'.format(request.user.username))
         follows = [follow.decode() for follow in follows]
         follows.append(request.user.username)
-        qs = Blog.objects.filter(author_id__in=follows).union(
-            Photo.objects.filter(author_id__in=follows)).order_by('-created_at')
+        qs = Blog.objects.annotate(replies_count=Count('replies')).filter(author_id__in=follows).union(
+            Photo.objects.annotate(replies_count=Count('replies')).filter(author_id__in=follows)).order_by('-created_at')
         items = []
         for r in qs:
             item = {}
@@ -385,7 +386,8 @@ class GetMoments(View):
                 r.author_id), 'nickname').decode()
             item['author_avatar'] = redis.hget(
                 "user:{}:detail".format(r.author_id), 'avatar').decode()
-            item['replies_count'] = r.replies.count() + r.sub_replies.count()
+            item['replies_count'] = r.replies_count
+            item['replies'] = []
             if(r.app == 'blog'):
                 item['body'] = r.body
                 item['likes'] = redis.scard('blog:{}:likes'.format(r.id))
@@ -398,7 +400,7 @@ class GetMoments(View):
                 item['liked'] = redis.sismember(
                     'photo:{}:likes'.format(r.id), request.user.username)
             items.append(item)
-        return JsonResponse({'data': items})
+        return JsonResponse({'code': 1, 'msg': items})
 
 
 def get_user_detail(uid):

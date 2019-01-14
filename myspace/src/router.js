@@ -37,7 +37,7 @@ const router = new Router({
       path: '/b/:blogid',
       name: 'blogInfoPage',
       beforeEnter: (to, from, next) => {
-        if (from.path === '/') {
+        if (to.params.id === undefined) {
           next()
         } else {
           next(false)
@@ -50,7 +50,7 @@ const router = new Router({
       path: '/p/:photoid',
       name: 'photoInfoPage',
       beforeEnter: (to, from, next) => {
-        if (from.path === '/') {
+        if (to.params.id === undefined) {
           next()
         } else {
           next(false)

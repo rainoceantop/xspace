@@ -44,7 +44,8 @@ export default {
   name: "BlogInfo",
   data() {
     return {
-      blog: ""
+      blog: "",
+      cached_blog: {}
     };
   },
   created() {
@@ -62,6 +63,7 @@ export default {
           .then(response => {
             if (response.data.code === 1) {
               this.blog = response.data.msg;
+              this.cached_blog[id] = response.data.msg;
             } else {
               alert(response.data.msg);
             }
@@ -96,6 +98,15 @@ export default {
   computed: {
     blogIcon() {
       return [this.blog.liked ? "fas" : "far", "thumbs-up"];
+    }
+  },
+  watch: {
+    blogid(n, o) {
+      if (!this.cached_blog[n]) {
+        this.getBlog(n);
+      } else {
+        this.blog = this.cached_blog[n];
+      }
     }
   }
 };
