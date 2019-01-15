@@ -15,5 +15,6 @@ urlpatterns = [
     path('getUpdateData', views.GetUpdateData.as_view()),
     path('getFollows', views.GetFollows.as_view()),
     path('getFans', views.GetFans.as_view()),
-    path('getMoments', views.GetMoments.as_view())
+    path('getMoments', views.GetMoments.as_view()),
+    path('getExplores', views.getExplores.as_view())
 ]

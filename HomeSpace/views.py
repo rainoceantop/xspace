@@ -372,10 +372,10 @@ class GetMoments(View):
             'user:{}:follows'.format(request.user.username))
         follows = [follow.decode() for follow in follows]
         follows.append(request.user.username)
-        qs = Blog.objects.annotate(replies_count=Count('replies')).filter(author_id__in=follows).union(
+        moments = Blog.objects.annotate(replies_count=Count('replies')).filter(author_id__in=follows).union(
             Photo.objects.annotate(replies_count=Count('replies')).filter(author_id__in=follows)).order_by('-created_at')
         items = []
-        for r in qs:
+        for r in moments:
             item = {}
             item['id'] = r.id
             item['title'] = r.title
@@ -388,19 +388,43 @@ class GetMoments(View):
                 "user:{}:detail".format(r.author_id), 'avatar').decode()
             item['replies_count'] = r.replies_count
             item['replies'] = []
-            if(r.app == 'blog'):
-                item['body'] = r.body
-                item['likes'] = redis.scard('blog:{}:likes'.format(r.id))
-                item['liked'] = redis.sismember(
-                    'blog:{}:likes'.format(r.id), request.user.username)
-            else:
+            if r.app == 'photo':
                 item['url'] = r.url
                 item['caption'] = r.caption
                 item['likes'] = redis.scard('photo:{}:likes'.format(r.id))
                 item['liked'] = redis.sismember(
                     'photo:{}:likes'.format(r.id), request.user.username)
+            if r.app == 'blog':
+                item['body'] = r.body
+                item['likes'] = redis.scard('blog:{}:likes'.format(r.id))
+                item['liked'] = redis.sismember(
+                    'blog:{}:likes'.format(r.id), request.user.username)
             items.append(item)
         return JsonResponse({'code': 1, 'msg': items})
+
+
+class getExplores(View):
+    def get(self, request):
+        explores = Blog.objects.annotate(replies_count=Count('replies')+Count('sub_replies')).union(
+            Photo.objects.annotate(replies_count=Count('replies')+Count('sub_replies'))).order_by('-created_at')
+
+        if explores:
+            redis = get_redis()
+            items = []
+            for r in explores:
+                item = {}
+                item['id'] = r.id
+                item['app'] = r.app
+                item['replies_count'] = r.replies_count
+                if r.app == 'photo':
+                    item['url'] = r.url
+                    item['likes'] = redis.scard('photo:{}:likes'.format(r.id))
+                if r.app == 'blog':
+                    item['title'] = r.title
+                    item['likes'] = redis.scard('blog:{}:likes'.format(r.id))
+                items.append(item)
+            return JsonResponse({'code': 1, 'msg': items})
+        return JsonResponse({'code': 2, 'msg': '暂无数据'})
 
 
 def get_user_detail(uid):

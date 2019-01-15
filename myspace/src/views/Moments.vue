@@ -23,6 +23,7 @@
                 class="article-title"
                 v-else
                 :to="{name: 'blogInfoPage', params: {blogid: moment.id}}"
+                :title="moment.title"
               >{{ moment.title }}</router-link>
             </span>
             <span class="article-time">
@@ -34,18 +35,33 @@
             <div class="photo" v-if="moment.app === 'photo'">
               <img oncontextmenu="return false" ondragstart="return false" :src="moment.url" alt>
             </div>
-            <div class="blog" v-if="moment.app === 'blog'" v-html="moment.body"></div>
+            <div :class="['blog', moment.fold ? 'fold': '']" v-if="moment.app === 'blog'">
+              <div v-html="moment.body"></div>
+              <div class="fold-label" v-show="moment.fold" @click="moment.fold = false">
+                <p>展开剩余内容</p>
+              </div>
+            </div>
           </article>
           <footer>
             <div class="icons-row">
               <span class="like-area" @click="toggleLike(moment.app, moment.app, moment)">
                 <span v-if="moment.app === 'photo'">
                   <font-awesome-icon v-show="!moment.liked" :icon="['far', 'heart']" size="lg"></font-awesome-icon>
-                  <font-awesome-icon v-show="moment.liked" :icon="['fas', 'heart']" size="lg"></font-awesome-icon>
+                  <font-awesome-icon
+                    v-show="moment.liked"
+                    :icon="['fas', 'heart']"
+                    size="lg"
+                    style="color: red"
+                  ></font-awesome-icon>
                 </span>
                 <span v-else>
                   <font-awesome-icon v-show="!moment.liked" :icon="['far', 'thumbs-up']" size="lg"></font-awesome-icon>
-                  <font-awesome-icon v-show="moment.liked" :icon="['fas', 'thumbs-up']" size="lg"></font-awesome-icon>
+                  <font-awesome-icon
+                    v-show="moment.liked"
+                    :icon="['fas', 'thumbs-up']"
+                    size="lg"
+                    style="color: #007CBA"
+                  ></font-awesome-icon>
                 </span>
                 &nbsp;
                 <span>{{ moment.likes }}</span>
@@ -113,7 +129,11 @@ export default {
         .get("http://192.168.1.7:8000/api/homespace/getMoments")
         .then(response => {
           if (response.data.code === 1) {
-            this.moments = response.data.msg;
+            let items = response.data.msg;
+            for (let i = 0; i < items.length; i++) {
+              items[i]["fold"] = true;
+            }
+            this.moments = items;
           } else {
             alert(response.data.msg);
           }
@@ -216,6 +236,9 @@ export default {
       display: flex;
       align-items: center;
     }
+    span:nth-child(1) {
+      max-width: 85%;
+    }
     .author-name,
     .article-title {
       text-decoration: none;
@@ -225,6 +248,14 @@ export default {
       &:hover {
         text-decoration: underline;
       }
+    }
+    .author-name {
+      white-space: nowrap;
+    }
+    .article-title {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
     .article-time {
       font-size: 14px;
@@ -242,8 +273,40 @@ export default {
       }
     }
     .blog {
+      width: 100%;
       word-wrap: break-word;
       word-break: break-all;
+      position: relative;
+    }
+    .fold {
+      text-align: start;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 7;
+      -webkit-box-orient: vertical;
+    }
+    .fold-label {
+      color: $blue;
+      font-weight: bold;
+      text-align: center;
+      font-size: 13px;
+      line-height: 25px;
+      cursor: pointer;
+      background-image: -webkit-linear-gradient(
+        bottom,
+        rgba(245, 245, 245, 1),
+        rgba(245, 245, 245, 0.75) 80%,
+        rgba(245, 245, 245, 0)
+      );
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+      -o-box-sizing: border-box;
+      -ms-box-sizing: border-box;
+      box-sizing: border-box;
+      width: inherit;
+      position: absolute;
+      bottom: 0;
+      left: 0;
     }
   }
   footer {
@@ -265,7 +328,7 @@ export default {
     }
     .view-comment {
       font-size: 13px;
-      color: $gray;
+      color: darken($color: $gray, $amount: 15);
       cursor: pointer;
     }
     .comment-display {

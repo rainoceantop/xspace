@@ -166,7 +166,7 @@ class BlogFileUpload(View):
         secret_key = 'Llh0byt0KDHwiFlcNVvPiTpQSrH8IrZSt5puu1zS'
 
         q = qiniu_auth(access_key, secret_key)
-        bucket_name = 'blog'
+        bucket_name = 'blog2'
 
         try:
             token = q.upload_token(bucket_name, file_name, 3600)
@@ -177,7 +177,7 @@ class BlogFileUpload(View):
             return JsonResponse({'uploaded': False, 'msg': '上传文件出错'})
         finally:
             fs.delete(file_name)
-            return JsonResponse({'uploaded': True, 'url': 'http://pjk94dt0u.bkt.clouddn.com/{}'.format(file_name)})
+            return JsonResponse({'uploaded': True, 'url': 'http://pldd64kvs.bkt.clouddn.com/{}'.format(file_name)})
 
 
 class BlogReplyGet(View):

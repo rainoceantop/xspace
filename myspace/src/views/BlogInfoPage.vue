@@ -8,7 +8,12 @@
       <footer class="artical-footer">
         <aside class="left">
           <span class="like-icon">
-            <font-awesome-icon @click="toggleLike('blog', blog)" :icon="blogIcon" size="lg"/>
+            <font-awesome-icon
+              @click="toggleLike('blog', blog)"
+              :icon="blogIcon"
+              size="lg"
+              style="color: #007CBA"
+            />
           </span>
           <span class="like-count">{{ blog.likes }}</span>
         </aside>
