@@ -152,6 +152,12 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
+EMAIL_HOST = 'smtp.163.com'
+EMAIL_HOST_USER = 'jessensl77@163.com'
+EMAIL_HOST_PASSWORD = 'xspace520'
+EMAIL_SSL = True
+EMAIL_TLS = False
+
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = (

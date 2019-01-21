@@ -61,6 +61,23 @@ export default {
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+}
+
+.follow {
+  font-size: 15px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  color: $main-color;
+  font-weight: bold;
+  margin-left: 0.5em;
+}
+.go-follow {
+  background-color: $blue;
+}
+.was-followed {
+  background-color: $gray;
 }
 body {
   background-color: $main-color;

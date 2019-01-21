@@ -1,130 +1,117 @@
 <template>
-  <transition leave-active-class="hide" enter-active-class="animated slideInRight">
-    <section class="container">
-      <div id="page-info">用户注册</div>
-      <form>
-        <label for="username">账号：</label>
-        <input
-          v-model="username"
-          v-on:blur="usernameOnFocus=false"
-          v-on:focus="usernameOnFocus=true"
-          :class="{'error': usernameerror, 'input-style':true}"
-          autocomplete="off"
-          type="username"
-          name="username"
-          placeholder=">___"
-          id="username"
-        >
-        <div :class="{'progess-bar-0': !usernameOnFocus, 'progess-bar-1': usernameOnFocus}"></div>
-        <label for="username">名称：</label>
-        <input
-          v-model="nickname"
-          v-on:blur="nicknameOnFocus=false"
-          v-on:focus="nicknameOnFocus=true"
-          :class="{'error': nicknameerror, 'input-style':true}"
-          autocomplete="off"
-          type="text"
-          name="nickname"
-          placeholder=">___"
-          id="nickname"
-        >
-        <div :class="{'progess-bar-0': !nicknameOnFocus, 'progess-bar-1': nicknameOnFocus}"></div>
-        <label for="username">密码：</label>
-        <input
-          v-model="password1"
-          v-on:blur="password1OnFocus=false"
-          v-on:focus="password1OnFocus=true"
-          :class="{'error': password1error, 'input-style':true}"
-          type="password"
-          name="password1"
-          placeholder=">___"
-          id="password1"
-        >
-        <div :class="{'progess-bar-0': !password1OnFocus, 'progess-bar-1': password1OnFocus}"></div>
-        <label for="username">重复密码：</label>
-        <input
-          v-model="password2"
-          type="password"
-          v-on:blur="password2OnFocus=false"
-          v-on:focus="password2OnFocus=true"
-          :class="{'error': password2error, 'input-style':true}"
-          name="password2"
-          placeholder=">___"
-          id="password2"
-        >
-        <div :class="{'progess-bar-0': !password2OnFocus, 'progess-bar-1': password2OnFocus}"></div>
-        <p
-          :class="['warn', (usernameerror || nicknameerror || password1error || password2error) ? 'show' : 'hide']"
-        >* 账号只能由字母数字组成长度区间[6-20]，名称长度区间区间[1-20]，密码不能包含非法字符，长度区间[8-40]</p>
-        <div class="form-footer">
-          <input class="button-style" type="button" @click="registration()" value="注册">
-          <router-link to="/user/login">已有账号？去登录</router-link>
+  <div class="container info-wrap">
+    <section class="panel">
+      <form @submit.prevent>
+        <header>Xspace</header>
+        <div :class="['form-item',usernameOnInput]">
+          <label>用户名</label>
+          <input type="text" v-model="username">
+        </div>
+        <div :class="['form-item',nicknameOnInput]">
+          <label>名称</label>
+          <input type="text" v-model="nickname">
+        </div>
+        <div :class="['form-item',password1OnInput]">
+          <label>密码</label>
+          <input type="password" v-model="password1">
+        </div>
+        <div :class="['form-item',password2OnInput]">
+          <label>确认密码</label>
+          <input type="password" v-model="password2">
+        </div>
+        <div v-if="error" class="form-item">
+          <p class="error-label">{{ errorlabel }}</p>
+        </div>
+        <div class="form-item">
+          <input
+            class="button-style"
+            :disabled="loginButtonDisable"
+            type="button"
+            value="登录"
+            @click="register"
+          >
         </div>
       </form>
     </section>
-  </transition>
+    <section class="panel">
+      <p class="link-label">已有账户？
+        <router-link :to="{name: 'login'}">登录</router-link>
+      </p>
+    </section>
+  </div>
 </template>
 
 <script>
 export default {
-  name: "register",
+  name: "Login",
   data() {
     return {
       username: "",
       nickname: "",
       password1: "",
       password2: "",
-
       u_p: /^[a-zA-Z0-9]{6,20}$/,
       p_p: /^[a-zA-Z0-9,./~!@#$%^&*()_+]{8,40}$/,
-
-      usernameerror: false,
-      nicknameerror: false,
-      password1error: false,
-      password2error: false,
-
-      usernameOnFocus: false,
-      nicknameOnFocus: false,
-      password1OnFocus: false,
-      password2OnFocus: false
+      error: false,
+      errorlabel: ""
     };
   },
   methods: {
-    registration: function() {
-      // 判断username
-      if (!this.u_p.test(this.username)) this.usernameerror = true;
-      else this.usernameerror = false;
-      // 判断密码
-      if (!this.p_p.test(this.password1)) this.password1error = true;
-      else this.password1error = false;
-      if (!this.p_p.test(this.password2) || this.password2 !== this.password1)
-        this.password2error = true;
-      else this.password2error = false;
-
-      // 判断名称
-      if (this.nickname.length > 20 || this.nickname.length === 0)
-        this.nicknameerror = true;
-      else this.nicknameerror = false;
-
-      if (
-        this.usernameerror === false &&
-        this.nicknameerror === false &&
-        this.password1error === false &&
-        this.password2error === false
-      ) {
-        this.$store.dispatch("register", {
-          username: this.username,
-          nickname: this.nickname,
-          password1: this.password1,
-          password2: this.password2
-        });
+    register: function() {
+      if (!this.u_p.test(this.username)) {
+        this.error = true;
+        this.errorlabel = "账号只能由字母数字组成且长度在区间[6-20]范围内";
+        return;
       }
+      if (this.nickname.length > 20 || this.nickname.length === 0) {
+        this.error = true;
+        this.errorlabel = "名称长度区间[1-20]";
+        return;
+      }
+      if (!this.p_p.test(this.password1)) {
+        this.error = true;
+        this.errorlabel = "密码出现非法字符或长度不在区间[8-40]范围内";
+        return;
+      }
+      if (this.password2 !== this.password1) {
+        this.error = true;
+        this.errorlabel = "确认密码与密码不一致，请检查";
+        return;
+      }
+      this.error = false;
+      this.$store.dispatch("register", {
+        username: this.username,
+        nickname: this.nickname,
+        password1: this.password1,
+        password2: this.password2
+      });
+    }
+  },
+  computed: {
+    usernameOnInput: function() {
+      return this.username.length === 0 ? "" : "small-label";
+    },
+    nicknameOnInput: function() {
+      return this.nickname.length === 0 ? "" : "small-label";
+    },
+    password1OnInput: function() {
+      return this.password1.length === 0 ? "" : "small-label";
+    },
+    password2OnInput: function() {
+      return this.password2.length === 0 ? "" : "small-label";
+    },
+    loginButtonDisable: function() {
+      return (
+        this.username.length === 0 ||
+        this.nickname.length === 0 ||
+        this.password1.length === 0 ||
+        this.password2.length === 0
+      );
     }
   }
 };
 </script>
-
 <style lang="scss" scoped>
-@import "../assets/scss/config";
 @import "../assets/scss/login_register";
 </style>
+

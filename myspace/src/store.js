@@ -53,6 +53,17 @@ export default new Vuex.Store({
           alert(error)
         });
     },
+    logout(context) {
+      axios.get('http://192.168.1.7:8000/api/homespace/logout').then(response => {
+        if (response.data.code === 1) {
+          context.commit('logout')
+          router.push("/user/login");
+
+        }
+        else
+          alert(response.data.msg)
+      })
+    },
     register(context, user) {
       axios.post("http://192.168.1.7:8000/api/homespace/register", {
         username: user.username,

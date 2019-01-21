@@ -2,16 +2,20 @@ from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.contrib.auth.models import User
 from django.core.serializers import serialize
+from django.core.mail import send_mail
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.hashers import check_password
 from django.core.files.storage import FileSystemStorage
-from django.db.models import Count
+from django.contrib.auth.tokens import default_token_generator
+from django.db.models import Q, F, Count
+
 from MyBlog.models import Blog
 from MyPhoto.models import Photo
 import json
 import re
 import os
 import time
+from base64 import urlsafe_b64encode, urlsafe_b64decode
 from django.core import exceptions
 from MyHome.utils import get_redis, ConvertTime
 from qiniu import Auth as qiniu_auth
@@ -233,6 +237,79 @@ class ChangePassword(View):
         return JsonResponse({'code': 1, 'msg': '修改成功'})
 
 
+class ChangePasswordByEmail(View):
+    def get(self, request):
+        email = request.GET['email']
+
+        user = User.objects.filter(
+            Q(username=email) | Q(email=email)).first()
+        if user:
+            uid = urlsafe_b64encode(user.username.encode()).decode()
+            token = default_token_generator.make_token(user)
+            url = 'http://192.168.1.7:8080/accounts/password/reset/confirm/{}/{}'.format(
+                uid, token)
+            r = send_mail(
+                'Xspace',
+                '嘿，你需要修改密码，点击链接"{}"'.format(url),
+                'jessensl77@163.com',
+                [user.email],
+                fail_silently=False
+            )
+            print(user.email)
+            print(r)
+            return JsonResponse({'code': 1, 'msg': '发送成功'})
+
+        return JsonResponse({'code': 2, 'msg': '出错，未查询到相关账号'})
+
+
+class ChangePasswordCheckToken(View):
+    def get(self, request):
+        uid = request.GET['uid']
+        token = request.GET['token']
+        username = urlsafe_b64decode(uid).decode()
+        try:
+            user = User.objects.get(username=username)
+            c = default_token_generator.check_token(user, token)
+            if c:
+                return JsonResponse({'code': 1, 'msg': '认证成功'})
+            return JsonResponse({'code': 2, 'msg': 'token认证失败'})
+        except exceptions.ObjectDoesNotExist:
+            return JsonResponse({'code': 2, 'msg': '用户认证失败'})
+
+
+class ChangePasswordByEmailConfirm(View):
+    def post(self, request):
+        uid = request.GET['uid']
+        token = request.GET['token']
+        username = urlsafe_b64decode(uid).decode()
+        try:
+            user = User.objects.get(username=username)
+            c = default_token_generator.check_token(user, token)
+            if not c:
+                return JsonResponse({'code': 2, 'msg': 'token认证失败'})
+
+            data = json.loads(request.body)
+            newpass1 = data['newpass1'].strip()
+            newpass2 = data['newpass2'].strip()
+            if len(newpass1) is 0 or len(newpass2) is 0:
+                return JsonResponse({'code': 3, 'msg': '密码不能为空'})
+
+            p_p = r'^[a-zA-Z0-9,./~!@#$%^&*()_+]{8,40}$'
+
+            if not re.match(p_p, newpass1):
+                return JsonResponse({'code': 4, 'msg': '密码出现非法字符或长度不在有效区间[8-40]内'})
+
+            if not newpass1 == newpass2:
+                return JsonResponse({'code': 5, 'msg': '新密码与确认密码不匹配'})
+            user.set_password(newpass1)
+            user.save()
+            login(request, user)
+            return JsonResponse({'code': 1, 'msg': get_user_detail(user.username)})
+
+        except exceptions.ObjectDoesNotExist:
+            return JsonResponse({'code': 2, 'msg': '用户认证失败'})
+
+
 class ChangeAvatar(View):
     def post(self, request):
         if not request.user.is_authenticated:
@@ -353,7 +430,7 @@ class UpdateDetail(View):
         if len(firstname) > 30:
             return JsonResponse({'code': 6, 'msg': '姓名长度超出区间范围[1-30]'})
 
-        if len(email) > 0 and len(firstname) > 0:
+        if len(email) > 0 or len(firstname) > 0:
             user = User.objects.get(pk=request.user.id)
             user.email = email
             user.first_name = firstname

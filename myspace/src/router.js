@@ -158,6 +158,18 @@ const router = new Router({
 
     },
     {
+      path: '/accounts/password/reset',
+      name: 'passwordReset',
+      component: () => import('./views/PasswordReset')
+    },
+    {
+      path: '/accounts/password/reset/confirm/:uid/:token',
+      name: 'passwordResetConfirm',
+      component: () => import('./views/PasswordResetConfirm'),
+
+      props: true
+    },
+    {
       path: '/user/login',
       name: 'login',
       beforeEnter: (to, from, next) => {

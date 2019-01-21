@@ -225,7 +225,7 @@ export default {
 .moment-item {
   display: block;
   width: 100%;
-  border: 1px solid #e6e6e6;
+  border: 1px solid $lightgray;
   margin-bottom: 2em;
   header {
     display: flex;

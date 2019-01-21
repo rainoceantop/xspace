@@ -19,6 +19,18 @@
           <input type="password" v-model="newpass2">
         </div>
       </div>
+      <div v-if="successlabel" class="form-item">
+        <div class="label"></div>
+        <div class="input">
+          <p class="success-label">{{ successlabel }}</p>
+        </div>
+      </div>
+      <div v-if="errorlabel" class="form-item">
+        <div class="label"></div>
+        <div class="input">
+          <p class="error-label">{{ errorlabel }}</p>
+        </div>
+      </div>
       <div class="form-item">
         <div class="label"></div>
         <div>
@@ -41,17 +53,20 @@ export default {
       oldpass: "",
       newpass1: "",
       newpass2: "",
+      errorlabel: "",
+      successlabel: "",
       p_p: /^[a-zA-Z0-9,./~!@#$%^&*()_+]{8,40}$/
     };
   },
   methods: {
     changePassword: function() {
       if (this.newpass1 !== this.newpass2) {
-        alert("新密码与确认密码不匹配！");
+        this.errorlabel = "新密码与确认密码不匹配！";
       } else {
         if (!this.p_p.test(this.newpass1)) {
-          alert("密码必须符合格式且长度在区间[8-40]内");
+          this.errorlabel = "密码必须符合格式且长度在区间[8-40]内";
         } else {
+          this.errorlabel = "";
           this.$axios
             .post("http://192.168.1.7:8000/api/homespace/changePassword", {
               oldpass: this.oldpass,
@@ -59,13 +74,19 @@ export default {
               newpass2: this.newpass2
             })
             .then(response => {
-              alert(response.data.msg);
               if (response.data.code === 1) {
-                this.$router.push("/user/login");
+                this.successlabel = "修改成功";
+                this.$store.commit("logout");
+                setTimeout(this.redirectToLogin, 1500);
+              } else {
+                this.errorlabel = response.data.msg;
               }
             });
         }
       }
+    },
+    redirectToLogin: function() {
+      this.$router.push("/user/login");
     }
   }
 };

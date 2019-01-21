@@ -3,7 +3,10 @@
     <section :class="['right-panel',open?'':'hide']">
       <header>
         <div id="user-detail">
-          <img class="avatar-bg" :src="avatar">
+          <div>
+            <img class="avatar-bg" :src="avatar">
+            <p class="logout" @click="$store.dispatch('logout')">退出登录</p>
+          </div>
           <div id="left-detail">
             <p id="nickname">
               <span>{{ nickname }}</span>
@@ -397,25 +400,6 @@ export default {
 };
 </script>
 
-<style lang="scss">
-@import "../assets/scss/var";
-.follow {
-  font-size: 15px;
-  padding: 3px 8px;
-  border-radius: 3px;
-  cursor: pointer;
-  color: $main-color;
-  font-weight: bold;
-  margin-left: 0.5em;
-}
-.go-follow {
-  background-color: $blue;
-}
-.was-followed {
-  background-color: $gray;
-}
-</style>
-
 
 <style lang="scss" scoped>
 @import "../assets/scss/config";
@@ -474,6 +458,16 @@ export default {
             color: $blue;
             text-decoration: none;
           }
+        }
+      }
+      .logout {
+        text-align: center;
+        cursor: pointer;
+        font-size: 13px;
+        padding: 3px;
+        color: $gray;
+        &:hover {
+          color: darken($gray, 15);
         }
       }
       .edit-profile {

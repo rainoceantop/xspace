@@ -66,6 +66,17 @@
     background-color: lighten($color: $blue, $amount: 18)
   }
 }
+
+.error-label, .success-label{
+  font-size: 13px;
+}
+.error-label{
+  color: red;
+}
+.success-label{
+  color: green;
+}
+
 @include mediaXS{
   .container {
     max-width: 270px;
