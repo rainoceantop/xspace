@@ -12,7 +12,7 @@
         placeholder="评论点什么"
       ></div>
     </section>
-    <div :class="{'progess-bar-0': !replyInputOnFocus, 'progess-bar-1': replyInputOnFocus}"></div>
+    <div :class="replyInputOnFocus ? 'progess-bar-1': 'progess-bar-0'"></div>
 
     <section v-if="firstFocus" class="reply-button animated fadeIn">
       <span class="cancel" @click="replyCancel">取消</span>
@@ -78,7 +78,7 @@
               @input="replyreplyInput($event, reply)"
             >{{ reply.from_user_nickname }}&nbsp;</div>
           </section>
-          <div :class="{'progess-bar-0': !reply.replyOnFocus, 'progess-bar-1': reply.replyOnFocus}"></div>
+          <div :class="reply.replyOnFocus ? 'progess-bar-1': 'progess-bar-0'"></div>
 
           <section v-if="reply.replyFirstFocus" class="reply-button animated fadeIn">
             <span class="cancel" @click="replyreplyCancel(reply)">取消</span>
@@ -159,9 +159,8 @@
                     @input="replyreplyInput($event, sub_reply)"
                   >{{ sub_reply.from_user_nickname }}&nbsp;</div>
                 </section>
-                <div
-                  :class="{'progess-bar-0': !sub_reply.replyOnFocus, 'progess-bar-1': sub_reply.replyOnFocus}"
-                ></div>
+
+                <div :class="sub_reply.replyOnFocus ? 'progess-bar-1': 'progess-bar-0'"></div>
 
                 <section v-if="sub_reply.replyFirstFocus" class="reply-button animated fadeIn">
                   <span class="cancel" @click="replyreplyCancel(sub_reply)">取消</span>
@@ -386,15 +385,15 @@ export default {
     justify-content: space-between;
     .reply-input {
       display: inline-block;
-      width: calc(100% - 20px - 40px);
-      padding: 5px 10px;
+      width: calc(100% - 50px);
       min-height: 25px;
       background: none;
+      padding: 0 10px 0 10px;
+      margin: 10px 0 20px 0;
       border-bottom: 1px $gray solid;
       color: black;
       outline: none;
       box-shadow: none;
-      margin-bottom: 20px;
       transition: width 0.5s ease-in-out;
       resize: none;
       &:empty:before {
@@ -415,7 +414,7 @@ export default {
     justify-content: space-between;
     .sub-reply-input {
       display: inline-block;
-      width: calc(100% - 10px - 40px);
+      width: calc(100% - 50px);
       padding: 5px;
       min-height: 20px;
       background: none;
@@ -534,11 +533,11 @@ export default {
   }
 }
 .progess-bar-1 {
-  width: calc(100% - 40px);
+  width: calc(100% - 50px);
 }
 .progess-bar-0,
 .progess-bar-1 {
-  margin-left: 40px;
+  margin-left: 50px;
 }
 </style>
 

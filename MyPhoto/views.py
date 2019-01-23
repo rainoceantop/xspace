@@ -5,6 +5,9 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.models import User
+from Notification.models import Notification
+from django.db.models import Q, F
+from Notification.views import add_notification
 
 from .models import Photo, PhotoReply, PhotoSubReply
 from MyHome.utils import get_redis, get_uuid_base64, ConvertTime
@@ -230,6 +233,55 @@ class PhotoAndReplyLikes(View):
 
         key = way + ':' + identity + ':likes'
         if addOrRem == 'add':
+            if way == 'photo':
+                photo = Photo.objects.filter(pk=identity).first()
+                action = 'photolike'
+                to_user_id = photo.author_id
+                body = '{}给你的发表的图片点了个赞'.format(
+                    request.user.last_name)
+                app = 'photo:{}'.format(photo.id)
+            else:
+                if way == 'preply':
+                    reply = PhotoReply.objects.filter(pk=identity).first()
+                    action = 'replylike'
+                if way == 'psreply':
+                    reply = PhotoSubReply.objects.filter(pk=identity).first()
+                    action = 'subreplylike'
+                to_user_id = reply.from_user_id
+                body = '{}赞了你的评论：{}'.format(
+                    request.user.last_name, reply.body)
+                app = 'photo:{}'.format(reply.photo_id)
+            if not to_user_id == request.user.username:
+                notification = Notification.objects.filter(
+                    Q(action=action) & Q(app=app)).last()
+                if notification:
+                    if notification.viewed:
+                        add_notification(
+                            one_or_many='one',
+                            from_user_id=request.user.username,
+                            to_user_id=to_user_id,
+                            action=action,
+                            body=body,
+                            app=app
+                        )
+                    else:
+                        if way == 'photo':
+                            body = '{}等多人给你的博客《{}》点赞'.format(
+                                request.user.last_name, photo.title)
+                        else:
+                            body = '{}等多人赞了你的评论：“{}”'.format(
+                                request.user.last_name, reply.body)
+                        notification.body = body
+                        notification.save()
+                else:
+                    add_notification(
+                        one_or_many='one',
+                        from_user_id=request.user.username,
+                        to_user_id=to_user_id,
+                        action=action,
+                        body=body,
+                        app=app
+                    )
             redis.sadd(key, request.user.username)
         if addOrRem == 'rem':
             redis.srem(key, request.user.username)

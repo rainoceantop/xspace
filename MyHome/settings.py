@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     # own
     'HomeSpace',
     'MyBlog',
-    'MyPhoto'
+    'MyPhoto',
+    'Notification'
 ]
 
 MIDDLEWARE = [
@@ -97,7 +98,23 @@ DATABASES = {
         },
     },
 }
-
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'DEBUG',
+        },
+    }
+}
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",

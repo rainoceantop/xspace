@@ -13,8 +13,11 @@
           :to="{name: 'photoInfo', params: {id:undefined, photoid: prev}}"
         ></router-link>
       </div>
+
       <div class="photo-view">
+        <font-awesome-icon v-if="loading" :icon="['fas', 'spinner']" size="5x" spin/>
         <img
+          v-else
           oncontextmenu="return false"
           ondragstart="return false"
           v-show="photo"
@@ -24,7 +27,7 @@
         >
       </div>
 
-      <div v-show="photo" class="caption animated fadeIn">
+      <div v-show="photo && !loading" class="caption animated fadeIn">
         <h3 v-if="photo.title">{{ photo.title }}</h3>
         <p>{{ photo.caption }}</p>
         <div class="photo-footer">
@@ -70,7 +73,7 @@
       </div>
     </div>
     <div class="container">
-      <Reply app="photo" :artical="photo" v-on:toggleLike="toggleLike"></Reply>
+      <Reply v-if="!loading" app="photo" :artical="photo" v-on:toggleLike="toggleLike"></Reply>
     </div>
   </div>
 </template>
@@ -81,7 +84,8 @@ export default {
   data() {
     return {
       photo: "",
-      cached_photos: {}
+      cached_photos: {},
+      loading: true
     };
   },
   created() {
@@ -94,6 +98,7 @@ export default {
   methods: {
     getPhoto: function(id) {
       if (id !== undefined) {
+        this.loading = true;
         this.photo = "";
         this.$axios
           .get(`http://192.168.1.7:8000/api/photo/${id}`)
@@ -104,6 +109,7 @@ export default {
             } else {
               alert(response.data.msg);
             }
+            this.loading = false;
           });
       }
     },
@@ -165,7 +171,9 @@ export default {
     photoid(n, o) {
       // 获取当前图片
       if (this.cached_photos[n] === undefined) this.getPhoto(n);
-      else this.photo = this.cached_photos[n];
+      else {
+        this.photo = this.cached_photos[n];
+      }
       // 获取图片上下文图片
       this.$emit("countPN", this.photoid);
     }

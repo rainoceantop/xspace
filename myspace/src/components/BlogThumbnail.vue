@@ -60,6 +60,7 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 0.5em;
 
     background-image: url("../assets/images/02.jpg");
     background-position: center;

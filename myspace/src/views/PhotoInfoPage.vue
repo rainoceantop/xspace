@@ -2,7 +2,9 @@
   <div>
     <div class="info">
       <div class="photo-view">
+        <font-awesome-icon v-if="loading" :icon="['fas', 'spinner']" size="5x" spin/>
         <img
+          v-else
           oncontextmenu="return false"
           ondragstart="return false"
           v-show="photo"
@@ -12,7 +14,7 @@
         >
       </div>
 
-      <div v-show="photo" class="caption animated fadeIn">
+      <div v-show="photo && !loading" class="caption animated fadeIn">
         <h3 v-if="photo.title">{{ photo.title }}</h3>
         <p>{{ photo.caption }}</p>
         <div class="photo-footer">
@@ -27,7 +29,8 @@
               <span>{{ photo.likes }}</span>
             </span>&emsp;
             <span class="comment-area">
-              <font-awesome-icon :icon="['far', 'comment']"/>
+              <font-awesome-icon :icon="['far', 'comment']"/>&nbsp;
+              <span>{{ photo.replies_count }}</span>
             </span>
           </span>
           <div>
@@ -41,7 +44,7 @@
       </div>
     </div>
     <div class="container">
-      <Reply app="photo" :artical="photo" v-on:toggleLike="toggleLike"></Reply>
+      <Reply v-if="!loading" app="photo" :artical="photo" v-on:toggleLike="toggleLike"></Reply>
     </div>
   </div>
 </template>
@@ -52,7 +55,8 @@ export default {
   data() {
     return {
       photo: "",
-      cached_photo: {}
+      cached_photo: {},
+      loading: true
     };
   },
   created() {
@@ -63,6 +67,7 @@ export default {
   methods: {
     getPhoto: function(id) {
       if (id !== undefined) {
+        this.loading = true;
         this.photo = "";
         this.$axios
           .get(`http://192.168.1.7:8000/api/photo/${id}`)
@@ -73,6 +78,7 @@ export default {
             } else {
               alert(response.data.msg);
             }
+            this.loading = false;
           });
       }
     },

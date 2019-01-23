@@ -56,7 +56,7 @@ export default {
       bio: this.$store.state.bio,
       email: "",
       firstname: "",
-      w_p: /^((ftp|http|https):\/\/)?(www\.)?([A-z]+)\.([A-z]{2,})/,
+      w_p: /^(https?):\/\/(-\.)?([^\s\/?\.#-]+\.?)+(\/[^\s]*)?$/,
       e_p: /^(?:[a-zA-Z0-9]+[_\-\+\.]?)*[a-zA-Z0-9]+@(?:([a-zA-Z0-9]+[_\-]?)*[a-zA-Z0-9]+\.)+([a-zA-Z]{2,})+$/
     };
   },
@@ -153,7 +153,7 @@ export default {
     textarea {
       padding: 10px;
       font-size: 15px;
-      min-height: 50px;
+      min-height: 100px;
       resize: vertical;
     }
   }

@@ -1,6 +1,7 @@
 <template>
   <div class="container">
-    <div class="blog-info-wrap">
+    <font-awesome-icon v-if="loading" :icon="['fas', 'spinner']" size="5x" spin/>
+    <div v-else class="blog-info-wrap">
       <div class="blog-header">
         <h3 id="title">{{ blog.title }}</h3>
       </div>
@@ -50,7 +51,8 @@ export default {
   data() {
     return {
       blog: "",
-      cached_blog: {}
+      cached_blog: {},
+      loading: true
     };
   },
   created() {
@@ -63,6 +65,7 @@ export default {
   methods: {
     getBlog: function(id) {
       if (id !== undefined) {
+        this.loading = true;
         this.$axios
           .get(`http://192.168.1.7:8000/api/blog/${id}`)
           .then(response => {
@@ -72,6 +75,7 @@ export default {
             } else {
               alert(response.data.msg);
             }
+            this.loading = false;
           });
       }
     },

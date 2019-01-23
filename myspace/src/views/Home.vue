@@ -20,7 +20,7 @@
             </div>&emsp;
             <div class="comments-aera">
               <font-awesome-icon :icon="['fas', 'comment']"></font-awesome-icon>&nbsp;
-              <span>{{ explore.replies_count }}</span>
+              <span>{{ explore.replies_count + explore.sub_replies_count}}</span>
             </div>
           </div>
         </div>

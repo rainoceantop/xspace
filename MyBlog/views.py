@@ -8,6 +8,8 @@ from django.core.cache import cache
 from django_redis import get_redis_connection
 from django.db.models import Q, F
 from MyHome.utils import ConvertTime, get_redis, get_uuid_base64
+from Notification.views import add_notification
+from Notification.models import Notification
 
 import json
 import re
@@ -372,6 +374,55 @@ class BlogAndReplyLikes(View):
 
         key = way + ':' + identity + ':likes'
         if addOrRem == 'add':
+            if way == 'blog':
+                blog = Blog.objects.filter(pk=identity).first()
+                action = 'bloglike'
+                to_user_id = blog.author_id
+                body = '{}给你的博客《{}》点了个赞'.format(
+                    request.user.last_name, blog.title)
+                app = 'blog:{}'.format(blog.id)
+            else:
+                if way == 'breply':
+                    reply = BlogReply.objects.filter(pk=identity).first()
+                    action = 'replylike'
+                if way == 'bsreply':
+                    reply = BlogSubReply.objects.filter(pk=identity).first()
+                    action = 'subreplylike'
+                to_user_id = reply.from_user_id
+                body = '{}赞了你的评论：{}'.format(
+                    request.user.last_name, reply.body)
+                app = 'blog:{}'.format(reply.blog_id)
+            if not to_user_id == request.user.username:
+                notification = Notification.objects.filter(
+                    Q(action=action) & Q(app=app)).last()
+                if notification:
+                    if notification.viewed:
+                        add_notification(
+                            one_or_many='one',
+                            from_user_id=request.user.username,
+                            to_user_id=to_user_id,
+                            action=action,
+                            body=body,
+                            app=app
+                        )
+                    else:
+                        if way == 'blog':
+                            body = '{}等多人给你的博客《{}》点赞'.format(
+                                request.user.last_name, blog.title)
+                        else:
+                            body = '{}等多人赞了你的评论：“{}”'.format(
+                                request.user.last_name, reply.body)
+                        notification.body = body
+                        notification.save()
+                else:
+                    add_notification(
+                        one_or_many='one',
+                        from_user_id=request.user.username,
+                        to_user_id=to_user_id,
+                        action=action,
+                        body=body,
+                        app=app
+                    )
             redis.sadd(key, request.user.username)
         if addOrRem == 'rem':
             redis.srem(key, request.user.username)

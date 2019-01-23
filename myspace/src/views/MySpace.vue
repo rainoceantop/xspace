@@ -52,7 +52,6 @@
         </div>
         <div class="app-icons" id="photo-icon" @click="currentThumbnail = 'PhotoThumbnail'"></div>
         <div class="app-icons" id="blog-icon" @click="currentThumbnail = 'BlogThumbnail'"></div>
-        <div class="app-icons" id="diary-icon"></div>
       </article>
       <keep-alive>
         <!-- <PhotoThumbnail
@@ -543,7 +542,7 @@ export default {
   right: -25em;
 }
 .left-viewer {
-  width: calc(100% - 25em - 1.5em);
+  width: calc(100% - 25em);
   height: calc(100% - 60px);
   visibility: visible;
   @include easeOut;

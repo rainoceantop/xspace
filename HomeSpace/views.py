@@ -56,14 +56,11 @@ class Register(View):
         if password1 == password2:
             if User.objects.filter(username=username).count() is 0:
                 try:
-                    redis = get_redis()
                     user = User.objects.create_user(
                         username=username,
-                        password=password1
+                        password=password1,
+                        last_name=nickname
                     )
-                    redis_key = 'user:{}:detail'.format(user.username)
-                    redis.hmset(
-                        redis_key, {'username': user.username, 'nickname': nickname, 'avatar': 'http://pkfzvu3bh.bkt.clouddn.com/default.jpg', 'bio': '', 'website': ''})
                     user_detail = get_user_detail(user.username)
                     login(request, user)
                     return JsonResponse({'code': 1, 'msg': user_detail})
@@ -482,8 +479,8 @@ class GetMoments(View):
 
 class getExplores(View):
     def get(self, request):
-        explores = Blog.objects.annotate(replies_count=Count('replies')+Count('sub_replies')).union(
-            Photo.objects.annotate(replies_count=Count('replies')+Count('sub_replies'))).order_by('-created_at')
+        explores = Blog.objects.annotate(Count('replies', distinct=True), Count('sub_replies', distinct=True)).union(
+            Photo.objects.annotate(Count('replies', distinct=True), Count('sub_replies', distinct=True))).order_by('-created_at')
 
         if explores:
             redis = get_redis()
@@ -492,7 +489,8 @@ class getExplores(View):
                 item = {}
                 item['id'] = r.id
                 item['app'] = r.app
-                item['replies_count'] = r.replies_count
+                item['replies_count'] = r.replies__count
+                item['sub_replies_count'] = r.sub_replies__count
                 if r.app == 'photo':
                     item['url'] = r.url
                     item['likes'] = redis.scard('photo:{}:likes'.format(r.id))

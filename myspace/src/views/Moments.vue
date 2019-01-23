@@ -106,7 +106,7 @@
         </section>
       </aside>
       <aside class="right">
-        <section class="moment-item">hgfhgfh</section>
+        <section class="moment-item">其他展示位</section>
       </aside>
     </div>
   </div>
