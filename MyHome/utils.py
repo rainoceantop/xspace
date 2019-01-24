@@ -33,6 +33,9 @@ class ConvertTime:
         else:
             return '{}'.format(t.date())
 
+    def datetimeToTimeStamp(self, t):
+        return t.timestamp()
+
 
 def get_redis():
     return get_redis_connection('default')

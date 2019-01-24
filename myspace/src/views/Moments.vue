@@ -37,6 +37,9 @@
             </div>
             <div :class="['blog', moment.fold ? 'fold': '']" v-if="moment.app === 'blog'">
               <div v-html="moment.body"></div>
+              <ul v-if="moment.tags" class="tag-display">
+                <li class="tag-hash-style" v-for="tag in moment.tags" :key="tag">#{{ tag }}</li>
+              </ul>
               <div class="fold-label" v-show="moment.fold" @click="moment.fold = false">
                 <p>展开剩余内容</p>
               </div>
@@ -79,6 +82,9 @@
                 :to="{name: 'myspace', params: {id: moment.author_id}}"
               >{{ moment.author }}</router-link>&nbsp;
               <span>{{ moment.caption }}</span>
+              <ul v-if="moment.tags" class="tag-display">
+                <li v-for="tag in moment.tags" :key="tag" class="tag-hash-style">#{{ tag }}</li>
+              </ul>
             </div>
 
             <p
@@ -133,11 +139,22 @@ export default {
             for (let i = 0; i < items.length; i++) {
               items[i]["fold"] = true;
             }
-            this.moments = items;
+            this.moments = items.sort(this.sortMoments);
           } else {
             alert(response.data.msg);
           }
         });
+    },
+    sortMoments: function(a, b) {
+      let t1 = a.timestamp;
+      let t2 = b.timestamp;
+      if (t1 < t2) {
+        return 1;
+      } else if (t1 > t2) {
+        return -1;
+      } else {
+        return 0;
+      }
     },
     getReplies: function(moment) {
       this.$axios

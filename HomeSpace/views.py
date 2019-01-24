@@ -7,7 +7,8 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.hashers import check_password
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.tokens import default_token_generator
-from django.db.models import Q, F, Count
+from django.db.models import Q, F, Count, Sum
+from itertools import chain
 
 from MyBlog.models import Blog
 from MyPhoto.models import Photo
@@ -446,8 +447,11 @@ class GetMoments(View):
             'user:{}:follows'.format(request.user.username))
         follows = [follow.decode() for follow in follows]
         follows.append(request.user.username)
-        moments = Blog.objects.annotate(replies_count=Count('replies')).filter(author_id__in=follows).union(
-            Photo.objects.annotate(replies_count=Count('replies')).filter(author_id__in=follows)).order_by('-created_at')
+        photos = Photo.objects.annotate(replies_count=Count(
+            'replies')).filter(author_id__in=follows)
+        blogs = Blog.objects.annotate(replies_count=Count(
+            'replies')).filter(author_id__in=follows)
+        moments = chain(photos, blogs)
         items = []
         for r in moments:
             item = {}
@@ -455,7 +459,9 @@ class GetMoments(View):
             item['title'] = r.title
             item['app'] = r.app
             item['author_id'] = r.author_id
+            item['tags'] = [tag.name for tag in r.tags.all()]
             item['created_at'] = ct.convertDatetime(r.created_at)
+            item['timestamp'] = ct.datetimeToTimeStamp(r.created_at)
             item['author'] = redis.hget("user:{}:detail".format(
                 r.author_id), 'nickname').decode()
             item['author_avatar'] = redis.hget(
@@ -479,18 +485,21 @@ class GetMoments(View):
 
 class getExplores(View):
     def get(self, request):
-        explores = Blog.objects.annotate(Count('replies', distinct=True), Count('sub_replies', distinct=True)).union(
-            Photo.objects.annotate(Count('replies', distinct=True), Count('sub_replies', distinct=True))).order_by('-created_at')
-
+        photos = Photo.objects.annotate(replies_count=Count(
+            'replies', distinct=True) + Count('sub_replies', distinct=True))
+        blogs = Blog.objects.annotate(replies_count=Count(
+            'replies', distinct=True) + Count('sub_replies', distinct=True))
+        explores = chain(photos, blogs)
         if explores:
             redis = get_redis()
             items = []
+            ct = ConvertTime()
             for r in explores:
                 item = {}
                 item['id'] = r.id
                 item['app'] = r.app
-                item['replies_count'] = r.replies__count
-                item['sub_replies_count'] = r.sub_replies__count
+                item['replies_count'] = r.replies_count
+                item['timestamp'] = ct.datetimeToTimeStamp(r.created_at)
                 if r.app == 'photo':
                     item['url'] = r.url
                     item['likes'] = redis.scard('photo:{}:likes'.format(r.id))

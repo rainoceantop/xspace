@@ -303,6 +303,7 @@ export default {
       for (let i = 0; i < this.blogs.length; i++) {
         if (this.blogs[i].id === id) {
           this.blogs.splice(i, 1);
+          break;
         }
       }
       this.showBlog(this.nextappid === "" ? this.prevappid : this.nextappid);
@@ -322,6 +323,7 @@ export default {
       for (let i = 0; i < this.photos.length; i++) {
         if (this.photos[i].id === id) {
           this.photos.splice(i, 1);
+          break;
         }
       }
       this.showPhoto(this.nextappid === "" ? this.prevappid : this.nextappid);
@@ -373,6 +375,7 @@ export default {
           } else {
             this.nextappid = "";
           }
+          break;
         }
       }
     }

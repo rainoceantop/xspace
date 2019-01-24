@@ -144,13 +144,15 @@ export default {
         });
     },
     deleteNotifications: function() {
-      this.$axios
-        .get("http://192.168.1.7:8000/api/notification/deleteNotifications")
-        .then(response => {
-          if (response.data.code === 1) {
-            this.notifications = [];
-          }
-        });
+      if (this.notifications.length > 0) {
+        this.$axios
+          .get("http://192.168.1.7:8000/api/notification/deleteNotifications")
+          .then(response => {
+            if (response.data.code === 1) {
+              this.notifications = [];
+            }
+          });
+      }
     }
   },
   computed: {}
@@ -401,7 +403,7 @@ figure img {
   width: 100% !important;
 }
 .ck-content {
-  min-height: 550px;
+  min-height: 400px;
 }
 
 blockquote {
@@ -470,13 +472,15 @@ export default {
         });
     },
     deleteNotifications: function() {
-      this.$axios
-        .get("http://192.168.1.7:8000/api/notification/deleteNotifications")
-        .then(response => {
-          if (response.data.code === 1) {
-            this.notifications = [];
-          }
-        });
+      if (this.notifications.length > 0) {
+        this.$axios
+          .get("http://192.168.1.7:8000/api/notification/deleteNotifications")
+          .then(response => {
+            if (response.data.code === 1) {
+              this.notifications = [];
+            }
+          });
+      }
     }
   },
   computed: {}

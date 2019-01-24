@@ -20,7 +20,7 @@
             </div>&emsp;
             <div class="comments-aera">
               <font-awesome-icon :icon="['fas', 'comment']"></font-awesome-icon>&nbsp;
-              <span>{{ explore.replies_count + explore.sub_replies_count}}</span>
+              <span>{{ explore.replies_count }}</span>
             </div>
           </div>
         </div>
@@ -50,7 +50,7 @@ export default {
             for (let i = 0; i < items.length; i++) {
               items[i]["cover"] = false;
             }
-            this.explores = items;
+            this.explores = items.sort(this.sortExplores);
           } else alert(response.data.msg);
         });
     },
@@ -60,6 +60,17 @@ export default {
         name: explore.app + "InfoPage",
         params: { photoid: explore.id, blogid: explore.id }
       });
+    },
+    sortExplores: function(a, b) {
+      let t1 = a.timestamp;
+      let t2 = b.timestamp;
+      if (t1 < t2) {
+        return 1;
+      } else if (t1 > t2) {
+        return -1;
+      } else {
+        return 0;
+      }
     }
   }
 };

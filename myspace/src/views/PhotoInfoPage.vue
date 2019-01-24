@@ -17,6 +17,9 @@
       <div v-show="photo && !loading" class="caption animated fadeIn">
         <h3 v-if="photo.title">{{ photo.title }}</h3>
         <p>{{ photo.caption }}</p>
+        <div class="tag-display">
+          <span class="tag-style" v-for="tag in photo.tags" :key="tag">{{ tag }}</span>
+        </div>
         <div class="photo-footer">
           <span>
             <span class="time-area">

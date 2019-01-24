@@ -30,6 +30,32 @@
           </div>
         </div>
         <div class="form-item">
+          <div class="label">*标签</div>
+          <div class="input">
+            <input
+              type="text"
+              maxlength="20"
+              v-model="tag"
+              placeholder="按回车键创建标签"
+              @keyup.enter="addTag(tag)"
+            >
+          </div>
+        </div>
+        <div class="form-item">
+          <div class="label"></div>
+          <div class="input">
+            <ul v-if="tags" class="tag-display">
+              <li
+                class="tag-style"
+                v-for="tag in tags"
+                :key="tag"
+                :title="'点击移除标签：'+tag"
+                @click="removeTag(tag)"
+              >{{tag}}</li>
+            </ul>
+          </div>
+        </div>
+        <div class="form-item">
           <div class="label"></div>
           <input @click="submit" class="button-style" type="button" value="提交">
         </div>
@@ -44,6 +70,8 @@ export default {
     return {
       title: "",
       caption: "",
+      tags: [],
+      tag: "",
       onUpload: false,
       uploadLabel: "上传图片",
       photoUrl: "",
@@ -59,11 +87,13 @@ export default {
       this.title = "";
       this.caption = "";
       this.photoUrl = "";
+      this.tags = [];
       if (!this.piscreate) {
         if (this.photo) {
           this.title = this.photo.title;
           this.caption = this.photo.caption;
           this.photoUrl = this.photo.url;
+          this.tags = this.photo.tags;
         }
       }
     },
@@ -84,6 +114,10 @@ export default {
         alert("说明不能超过500个字符");
         return;
       }
+      if (this.tags.length === 0) {
+        alert("请至少给图片添加一个标签");
+        return;
+      }
       let url = "http://192.168.1.7:8000/api/photo/store";
       if (!this.piscreate) {
         url = `http://192.168.1.7:8000/api/photo/${this.photo.id}/update`;
@@ -92,7 +126,8 @@ export default {
         .post(url, {
           photoUrl: this.photoUrl,
           title: this.title,
-          caption: this.caption
+          caption: this.caption,
+          tags: this.tags
         })
         .then(response => {
           if (response.data.code === 1) {
@@ -129,6 +164,19 @@ export default {
           alert(response.data.msg);
         }
       });
+    },
+    addTag: function(tag) {
+      this.tag = "";
+      tag = tag.replace(/\s+/g, "");
+      if (tag) this.tags.push(tag);
+    },
+    removeTag: function(tag) {
+      for (let i = 0; i < this.tags.length; i++) {
+        if (this.tags[i] === tag) {
+          this.tags.splice(i, 1);
+          break;
+        }
+      }
     }
   },
 
@@ -155,7 +203,7 @@ export default {
   justify-content: center;
 }
 .photo-create-wrap {
-  width: 70%;
+  width: 90%;
   padding: 2em 5em;
   // background-color: yellowgreen;
   text-align: start;

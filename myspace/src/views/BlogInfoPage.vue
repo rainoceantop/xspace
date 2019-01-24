@@ -6,6 +6,9 @@
         <h3 id="title">{{ blog.title }}</h3>
       </div>
       <div v-html="blog.body" id="body"></div>
+      <ul v-if="blog.tags" class="tag-display">
+        <li class="tag-style" v-for="tag in blog.tags" :key="tag">{{ tag }}</li>
+      </ul>
       <footer class="artical-footer">
         <aside class="left">
           <span class="like-icon">

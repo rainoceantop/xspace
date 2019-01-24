@@ -10,7 +10,7 @@ from django.db.models import Q, F
 from MyHome.utils import ConvertTime, get_redis, get_uuid_base64
 from Notification.views import add_notification
 from Notification.models import Notification
-
+from Tag.models import Tag
 import json
 import re
 import time
@@ -38,6 +38,7 @@ class BlogGet(View):
                 'author_id': blog.author_id,
                 'title': blog.title,
                 'body': blog.body,
+                'tags': [tag.name for tag in blog.tags.all()],
                 'created_at': ct.convertDatetime(blog.created_at),
                 'author': redis.hget(redis_blog_user_key, 'nickname').decode(),
                 'author_avatar': redis.hget(redis_blog_user_key, 'avatar').decode(),
@@ -57,15 +58,11 @@ class BlogGet(View):
 class BlogSet(View):
     def get(self, request, username):
         blog_set = Blog.objects.filter(
-            author_id=username).order_by('-created_at')
-        if blog_set:
-            blogs = [{
-                'id': blog.id,
-                'title': blog.title
-            } for blog in blog_set]
+            author_id=username).values('id', 'title').order_by('-created_at')
 
-            return JsonResponse({'code': 1, 'msg': blogs})
-        return JsonResponse({'code': 2, 'msg': '未找到相关博客'})
+        blogs = list(blog_set)
+
+        return JsonResponse({'code': 1, 'msg': blogs})
 
 
 # 创建blog
@@ -78,11 +75,14 @@ class BlogStore(View):
         data = json.loads(request.body)
         title = data['title'].strip()
         body = data['body'].strip()
+        tags = data['tags']
 
         if len(title) > 100 or len(title) < 1:
             return JsonResponse({'code': 3, 'msg': '标题不能为空且不超过100个字符'})
         if len(body) < 100:
             return JsonResponse({'code': 5, 'msg': 'Oh,come on,it is a blog!内容不得小于100个字符'})
+        if len(tags) is 0:
+            return JsonResponse({'code': 6, 'msg': '标签不能为空'})
 
         blog = Blog.objects.create(
             id=get_uuid_base64(),
@@ -90,6 +90,13 @@ class BlogStore(View):
             body=body,
             author_id=request.user.username
         )
+        for tag in tags:
+            tag = tag.replace(' ', '')
+            t = Tag.objects.filter(name=tag).first()
+            if not t:
+                t = Tag(name=tag)
+                t.save()
+            blog.tags.add(t)
         return JsonResponse({'code': 1, 'msg': {'id': blog.id, 'title': blog.title}})
 
 
@@ -103,17 +110,28 @@ class BlogUpdate(View):
         data = json.loads(request.body)
         title = data['title'].strip()
         body = data['body'].strip()
+        tags = data['tags']
 
         if len(title) > 100 or len(title) < 1:
             return JsonResponse({'code': 3, 'msg': '标题不能为空且不超过100个字符'})
         if len(body) < 100:
             return JsonResponse({'code': 5, 'msg': 'Oh,come on,it is a blog!内容不得小于100个字符'})
+        if len(tags) is 0:
+            return JsonResponse({'code': 6, 'msg': '标签不能为空'})
 
         try:
             blog = Blog.objects.get(pk=id)
             if blog.author_id == request.user.username:
                 blog.title = title
                 blog.body = body
+                blog.tags.clear()
+                for tag in tags:
+                    tag = tag.replace(' ', '')
+                    t = Tag.objects.filter(name=tag).first()
+                    if not t:
+                        t = Tag(name=tag)
+                        t.save()
+                    blog.tags.add(t)
                 blog.save()
                 return JsonResponse({'code': 1, 'msg': blog.id})
             return JsonResponse({'code': 8, 'msg': '修改失败，无权修改'})

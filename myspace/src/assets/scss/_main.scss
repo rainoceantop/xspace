@@ -48,6 +48,33 @@
   width: 100%;
 }
 
+.tag-display{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  list-style: none;
+  
+  .tag-style{
+    line-height: 25px;
+    padding: 5px 10px;
+    background-color: rgba(0, 0, 0, 0.3);
+    font-size: 13px;
+    color: $main-color;
+    margin-right: 1em;
+    margin-bottom: 1em;
+    cursor: pointer;
+  }
+  .tag-hash-style {
+    line-height: 25px;
+    padding: 5px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+}
+
 .button-style {
   width: 120px;
   color: $main-color;

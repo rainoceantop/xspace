@@ -3,18 +3,32 @@
     <div class="blog-create-wrap">
       <header class="title-area">
         <label for="title">标题</label>
-        <input
-          :value="title"
-          @input="title = $event.target.value"
-          type="text"
-          name="title"
-          id="title"
-        >
+        <input v-model="title" type="text" name="title" id="title">
       </header>
       <section class="body-area">
         <label for="body">内容</label>
         <ckeditor :editor="editor" :config="editorConfig" v-model="editorData"></ckeditor>
       </section>
+      <section class="tag-area">
+        <label for="tag">标签</label>
+        <input
+          v-model="tag"
+          type="text"
+          name="tag"
+          id="tag"
+          placeholder="按回车键添加标签"
+          @keyup.enter="addTag(tag)"
+        >
+      </section>
+      <ul class="tag-display">
+        <li
+          v-for="tag in tags"
+          :key="tag"
+          class="tag-style"
+          :title="'点击移除标签：'+tag"
+          @click="removeTag(tag)"
+        >{{ tag }}</li>
+      </ul>
       <footer class="buttons-area">
         <input class="button-style" type="button" @click="submit" value="提交">
       </footer>
@@ -35,6 +49,8 @@ export default {
       prevUrl: "",
       title: "",
       editorData: "",
+      tags: [],
+      tag: "",
       editor: ClassicEditor,
       editorConfig: {
         toolbar: [
@@ -74,6 +90,7 @@ export default {
       if (this.title.length < 1 || this.title.length > 100)
         alert("标题过长或过短");
       else if (this.editorData.length < 100) alert("内容至少一百字以上");
+      else if (this.tags.length === 0) alert("请至少添加一个标签");
       else {
         let url = "http://192.168.1.7:8000/api/blog/store";
         if (!this.biscreate) {
@@ -82,7 +99,7 @@ export default {
         this.$axios({
           url: url,
           method: "POST",
-          data: { title: this.title, body: this.editorData },
+          data: { title: this.title, body: this.editorData, tags: this.tags },
           headers: {
             "Content-type": "application/json"
           }
@@ -97,6 +114,7 @@ export default {
     initData: function() {
       this.title = "";
       this.editorData = "";
+      this.tags = [];
       if (!this.biscreate) {
         setTimeout(this.updateData, 1);
       }
@@ -104,6 +122,20 @@ export default {
     updateData: function() {
       this.title = this.blog.title;
       this.editorData = this.blog.body;
+      this.tags = this.blog.tags;
+    },
+    addTag: function(tag) {
+      this.tag = "";
+      tag = tag.replace(/\s+/g, "");
+      if (tag) this.tags.push(tag);
+    },
+    removeTag: function(tag) {
+      for (let i = 0; i < this.tags.length; i++) {
+        if (this.tags[i] === tag) {
+          this.tags.splice(i, 1);
+          break;
+        }
+      }
     }
   },
   mounted: function() {
@@ -135,7 +167,8 @@ export default {
   box-shadow: 5px 8px 15px rgba(0, 0, 0, 0.3);
 
   .title-area,
-  .body-area {
+  .body-area,
+  .tag-area {
     width: 100%;
     margin-bottom: 25px;
   }
@@ -145,10 +178,11 @@ export default {
     align-items: center;
   }
 
-  #title {
+  #title,
+  #tag {
     display: block;
     padding: 2px 10px;
-    width: calc(100% - 24px);
+    width: 100%;
     height: 25px;
   }
 

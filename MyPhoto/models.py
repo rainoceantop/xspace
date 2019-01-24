@@ -7,8 +7,8 @@ from django.contrib.auth.models import User
 class Photo(models.Model):
     id = models.CharField(primary_key=True, max_length=22, null=False)
     title = models.CharField(max_length=50, null=False, default='')
-    body = models.CharField(max_length=4, null=True,
-                            verbose_name='blog_column_body')
+    # body = models.CharField(max_length=4, null=True,
+    #                         verbose_name='blog_column_body')
     caption = models.CharField(max_length=500, null=False)
     url = models.URLField(null=False)
     author = models.ForeignKey(

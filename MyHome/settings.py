@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'HomeSpace',
     'MyBlog',
     'MyPhoto',
-    'Notification'
+    'Notification',
+    'Tag'
 ]
 
 MIDDLEWARE = [

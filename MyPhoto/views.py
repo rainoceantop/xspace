@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from Notification.models import Notification
 from django.db.models import Q, F
 from Notification.views import add_notification
+from Tag.models import Tag
 
 from .models import Photo, PhotoReply, PhotoSubReply
 from MyHome.utils import get_redis, get_uuid_base64, ConvertTime
@@ -23,9 +24,6 @@ import qiniu.config
 
 class PhotoGet(View):
     def get(self, request, id):
-        # key = "photo:{}:info".format(id)
-        # photo = cache.get(key)
-        # if photo is None:
         try:
             photo = Photo.objects.get(pk=id)
 
@@ -38,6 +36,7 @@ class PhotoGet(View):
                 'url': photo.url,
                 'title': photo.title,
                 'caption': photo.caption,
+                'tags': [tag.name for tag in photo.tags.all()],
                 'author': redis.hget("user:{}:detail".format(photo.author_id), "nickname").decode(),
                 'author_avatar': redis.hget("user:{}:detail".format(photo.author_id), "avatar").decode(),
                 'created_at': ct.convertDatetime(photo.created_at),
@@ -46,7 +45,6 @@ class PhotoGet(View):
                 'liked': redis.sismember("photo:{}:likes".format(photo.id), request.user.username) if request.user.is_authenticated else False
             }
             return JsonResponse({'code': 1, 'msg': photo})
-            # cache.set(key, photo, 120)
         except exceptions.ObjectDoesNotExist:
             return JsonResponse({'code': 2, 'msg': '找不到该图片'})
 
@@ -54,15 +52,13 @@ class PhotoGet(View):
 class PhotoSet(View):
     def get(self, request, username):
         photo_set = Photo.objects.filter(
-            author_id=username).order_by('-created_at')
-        if photo_set:
-            photos = [{
-                'id': photo.id,
-                'url': '{}-thumbnail'.format(photo.url)
-            } for photo in photo_set]
+            author_id=username).values('id', 'url').order_by('-created_at')
+        photos = [{
+            'id': photo['id'],
+            'url': '{}-thumbnail'.format(photo['url'])
+        } for photo in photo_set]
 
-            return JsonResponse({'code': 1, 'msg': photos})
-        return JsonResponse({'code': 2, 'msg': '未找到相关图片'})
+        return JsonResponse({'code': 1, 'msg': photos})
 
 
 class PhotoStore(View):
@@ -74,6 +70,7 @@ class PhotoStore(View):
         url = data['photoUrl'].strip()
         title = data['title'].strip()
         caption = data['caption'].strip()
+        tags = data['tags']
 
         if len(url) is 0:
             return JsonResponse({'code': 2, 'msg': '图片不能为空'})
@@ -81,6 +78,8 @@ class PhotoStore(View):
             return JsonResponse({'code': 2, 'msg': '标题不能超过50个字符'})
         if len(caption) is 0 or len(caption) > 500:
             return JsonResponse({'code': 2, 'msg': '图片说明不能为空且不超过500个字符'})
+        if len(tags) is 0:
+            return JsonResponse({'code': 2, 'msg': '标签不能为空'})
 
         photo = Photo.objects.create(
             id=get_uuid_base64(),
@@ -89,6 +88,14 @@ class PhotoStore(View):
             caption=caption,
             author_id=request.user.username
         )
+        for tag in tags:
+            tag = tag.replace(' ', '')[:20]
+            t = Tag.objects.filter(name=tag).first()
+            if not t:
+                t = Tag(name=tag)
+                t.save()
+            photo.tags.add(t)
+
         return JsonResponse({'code': 1, 'msg': {'id': photo.id, 'url': '{}-thumbnail'.format(photo.url)}})
 
 
@@ -100,6 +107,7 @@ class PhotoUpdate(View):
         data = json.loads(request.body)
         title = data['title'].strip()
         caption = data['caption'].strip()
+        tags = data['tags']
 
         if len(title) > 50:
             return JsonResponse({'code': 2, 'msg': '标题不能超过50个字符'})
@@ -111,6 +119,14 @@ class PhotoUpdate(View):
             if photo.author_id == request.user.username:
                 photo.title = title
                 photo.caption = caption
+                photo.tags.clear()
+                for tag in tags:
+                    tag = tag.replace(' ', '')[:20]
+                    t = Tag.objects.filter(name=tag).first()
+                    if not t:
+                        t = Tag(name=tag)
+                        t.save()
+                    photo.tags.add(t)
                 photo.save()
                 return JsonResponse({'code': 1, 'msg': photo.id})
             return JsonResponse({'code': 5, 'msg': '修改失败，无权修改'})
