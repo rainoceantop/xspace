@@ -1,44 +1,50 @@
 <template>
-  <div class="container">
-    <font-awesome-icon v-if="loading" :icon="['fas', 'spinner']" size="5x" spin/>
-    <div v-else class="blog-info-wrap">
-      <div class="blog-header">
-        <h3 id="title">{{ blog.title }}</h3>
+  <div id="top-wrapper" class="blog-info container">
+    <div class="blog-info-wrap">
+      <div v-if="loading" class="center">
+        <font-awesome-icon :icon="['fas', 'spinner']" size="3x" spin/>
       </div>
-      <div v-html="blog.body" id="body"></div>
-      <ul v-if="blog.tags" class="tag-display">
-        <li class="tag-style" v-for="tag in blog.tags" :key="tag">{{ tag }}</li>
-      </ul>
-      <footer class="artical-footer">
-        <aside class="left">
-          <span class="like-icon">
-            <font-awesome-icon
-              @click="toggleLike('blog', blog)"
-              :icon="blogIcon"
-              size="lg"
-              style="color: #007CBA"
-            />
-          </span>
-          <span class="like-count">{{ blog.likes }}</span>
-        </aside>
-        <aside class="right">
-          <p id="post-time">发表时间：{{ blog.created_at }}</p>
-          <div class="author-detail">
-            <div>
-              <router-link :to="{name: 'myspace', params: {id: blog.author_id}}">
-                <img class="avatar-sm" :src="blog.author_avatar" alt>
-              </router-link>
+      <div v-if="blog && !loading">
+        <div class="blog-header">
+          <h5 id="title">{{ blog.title }}</h5>
+        </div>
+        <div v-html="blog.body" id="body"></div>
+        <ul v-if="blog.tags" class="tag-display">
+          <li class="tag-style" v-for="tag in blog.tags" :key="tag">
+            <router-link class="main-color" :to="{name: 'tag', params: {tagname: tag}}">{{ tag }}</router-link>
+          </li>
+        </ul>
+        <footer class="artical-footer">
+          <aside class="left">
+            <span class="like-icon">
+              <font-awesome-icon
+                @click="toggleLike('blog', blog)"
+                :icon="blogIcon"
+                size="lg"
+                style="color: #007CBA"
+              />
+            </span>
+            <span class="like-count">{{ blog.likes }}</span>
+          </aside>
+          <aside class="right">
+            <p id="post-time">发表时间：{{ blog.created_at }}</p>
+            <div class="author-detail">
+              <div>
+                <router-link :to="{name: 'myspace', params: {id: blog.author_id}}">
+                  <img class="avatar-sm" :src="blog.author_avatar" alt>
+                </router-link>
+              </div>
+              <div>
+                <router-link
+                  :to="{name: 'myspace', params: {id: blog.author_id}}"
+                  id="author-name"
+                >{{ blog.author }}</router-link>
+                <p id="author-follows">{{ blog.author_follows }}关注·{{ blog.author_fans }}粉丝</p>
+              </div>
             </div>
-            <div>
-              <router-link
-                :to="{name: 'myspace', params: {id: blog.author_id}}"
-                id="author-name"
-              >{{ blog.author }}</router-link>
-              <p id="author-follows">{{ blog.author_follows }}关注·{{ blog.author_fans }}粉丝</p>
-            </div>
-          </div>
-        </aside>
-      </footer>
+          </aside>
+        </footer>
+      </div>
       <span>{{ blog.replies_count }}条评论</span>
       <Reply app="blog" :artical="blog" v-on:toggleLike="toggleLike"></Reply>
     </div>
@@ -123,7 +129,7 @@ export default {
   }
 };
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
 @import "../assets/scss/blog_info";
 </style>
 

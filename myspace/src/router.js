@@ -1,21 +1,14 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import MySpace from './views/MySpace'
-import Login from './views/Login'
 import store from './store'
-import CheckStatus from './views/CheckStatus'
 import BlogInfo from './components/BlogInfo'
 import PhotoInfo from './components/PhotoInfo'
-import BlogCreate from './components/BlogCreate'
-import PhotoCreate from './components/PhotoCreate'
 import ProfileEdit from './views/ProfileEdit'
-import DetailEdit from './components/DetailEdit'
-import PasswordChange from './components/PasswordChange'
-import AvatarChange from './components/AvatarChange'
 import BlogInfoPage from './views/BlogInfoPage'
 import PhotoInfoPage from './views/PhotoInfoPage'
+import BlogCreate from './components/BlogCreate'
 import Home from './views/Home'
-import Moments from './views/Moments'
 
 
 Vue.use(Router)
@@ -26,12 +19,18 @@ const router = new Router({
     {
       path: '/',
       name: 'home',
-      component: Home
+      component: Home,
+    },
+    {
+      path: '/tag/:tagname',
+      name: 'tag',
+      component: Home,
+      props: true
     },
     {
       path: '/moments',
       name: 'moments',
-      component: Moments
+      component: () => import('./views/Moments')
     },
     {
       path: '/b/:blogid',
@@ -114,7 +113,7 @@ const router = new Router({
           name: 'photoCreate',
           components: {
             default: MySpace,
-            leftView: PhotoCreate
+            leftView: () => import('./components/PhotoCreate')
           },
           beforeEnter: (to, from, next) => {
             if (store.state.login) next()
@@ -137,21 +136,28 @@ const router = new Router({
           path: 'edit',
           name: 'profileEdit',
           components: {
-            editView: DetailEdit
+            editView: () => import('./components/DetailEdit')
           }
         },
         {
           path: 'avatar/change',
           name: 'avatarChange',
           components: {
-            editView: AvatarChange
+            editView: () => import('./components/AvatarChange')
           }
         },
         {
           path: 'password/change',
           name: 'passwordChange',
           components: {
-            editView: PasswordChange
+            editView: () => import('./components/PasswordChange')
+          }
+        },
+        {
+          path: 'privacy/setting',
+          name: 'privacySetting',
+          components: {
+            editView: () => import('./components/PrivacySetting')
           }
         }
       ],
@@ -176,7 +182,7 @@ const router = new Router({
         if (store.state.login) next(`/${store.state.id}`);
         else next();
       },
-      component: Login
+      component: () => import('./views/Login')
     },
     {
       path: '/user/register',
@@ -187,7 +193,11 @@ const router = new Router({
       },
       component: () => import('./views/Register')
     },
-  ]
+  ],
+
+  scrollBehavior(to, from, savedPosition) {
+    return { x: 0, y: 0 }
+  },
 })
 
 export default router

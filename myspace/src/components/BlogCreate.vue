@@ -150,6 +150,7 @@ export default {
 </script>
 <style lang="scss" scoped>
 @import "../assets/scss/var";
+@import "../assets/scss/config";
 .container {
   width: 100%;
   display: flex;
@@ -188,6 +189,14 @@ export default {
 
   #body {
     width: 100%;
+  }
+}
+
+@include mediaSm {
+  .blog-create-wrap {
+    width: 100%;
+    padding: 1em;
+    margin-top: 0;
   }
 }
 </style>

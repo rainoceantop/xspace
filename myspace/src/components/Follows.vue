@@ -27,8 +27,9 @@ export default {
             `http://192.168.1.7:8000/api/homespace/getFollows?uid=${this.uid}`
           )
           .then(response => {
-            if (response.data.code === 1) this.follows = response.data.msg;
-            else alert(response.data.msg);
+            if (response.data.code === 1) {
+              this.follows = response.data.msg;
+            } else alert(response.data.msg);
           });
       }
     }

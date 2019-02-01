@@ -203,8 +203,10 @@ class BlogFileUpload(View):
 class BlogReplyGet(View):
     def get(self, request):
         blog_id = request.GET['id']
+        page = int(request.GET['page'])
+        from_index = 10 * (page - 1)
         replies = BlogReply.objects.filter(
-            blog_id=blog_id)[:10]
+            blog_id=blog_id)[from_index:from_index+10]
         if replies:
             redis = get_redis()
             ct = ConvertTime()
@@ -430,7 +432,8 @@ class BlogAndReplyLikes(View):
                         else:
                             body = '{}等多人赞了你的评论：“{}”'.format(
                                 request.user.last_name, reply.body)
-                        notification.body = body
+                        notification.body = body if len(
+                            body) < 150 else body[:147] + '...'
                         notification.save()
                 else:
                     add_notification(

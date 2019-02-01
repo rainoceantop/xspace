@@ -2,7 +2,7 @@
 	<style>
 		line {
 			stroke: #A8A8A3;
-			stroke-width: 2.5px;
+			stroke-width: 1.5px;
 		}
 	</style>
 	<line x1="8" y1="8" x2="24" y2="24" />

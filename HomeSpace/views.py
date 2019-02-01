@@ -12,6 +12,8 @@ from itertools import chain
 
 from MyBlog.models import Blog
 from MyPhoto.models import Photo
+from Tag.models import Tag
+from datetime import datetime, timedelta
 import json
 import re
 import os
@@ -136,8 +138,8 @@ class GetFollows(View):
 
         uid = request.GET['uid']
         redis = get_redis()
-        redis_key = "user:{}:follows".format(uid)
-        follows = redis.smembers(redis_key)
+        follows_redis_key = "user:{}:follows".format(uid)
+        follows = redis.smembers(follows_redis_key)
         follows_detail = []
         for follow in follows:
             follow_key = "user:{}:detail".format(follow.decode())
@@ -153,11 +155,13 @@ class GetFollows(View):
                     follow_key, 'bio').decode().replace('<br>', '\n')
                 follow_detail['followed'] = redis.sismember(
                     "user:{}:follows".format(request.user.username), follow.decode())
+                follow_detail['private'] = int(redis.hget(
+                    follow_key, 'private').decode())
                 follows_detail.append(follow_detail)
         return JsonResponse({'code': 1, 'msg': follows_detail})
 
 
-class GetFans(View):
+class GetFansAndRequests(View):
     def get(self, request):
         if not request.user.is_authenticated:
             return JsonResponse({'code': 2, 'msg': '用户尚未登录'})
@@ -180,8 +184,51 @@ class GetFans(View):
                     fan_key, 'bio').decode().replace('<br>', '\n')
                 fan_detail['followed'] = redis.sismember(
                     "user:{}:follows".format(request.user.username), fan.decode())
+                fan_detail['private'] = int(
+                    redis.hget(fan_key, 'private').decode())
                 fans_detail.append(fan_detail)
-        return JsonResponse({'code': 1, 'msg': fans_detail})
+
+        # 如果是本人，获取关注请求
+        requests_detail = []
+        if uid == request.user.username:
+            requests_redis_key = "user:{}:followRequests".format(uid)
+            requests = redis.smembers(requests_redis_key)
+            for r in requests:
+                r_key = "user:{}:detail".format(r.decode())
+                r_detail = {}
+                if redis.hget(r_key, 'username') is not None:
+                    r_detail['username'] = redis.hget(
+                        r_key, 'username').decode()
+                    r_detail['nickname'] = redis.hget(
+                        r_key, 'nickname').decode()
+                    r_detail['avatar'] = redis.hget(
+                        r_key, 'avatar').decode()
+                    r_detail['bio'] = redis.hget(
+                        r_key, 'bio').decode().replace('<br>', '\n')
+                    r_detail['followed'] = redis.sismember(
+                        "user:{}:follows".format(request.user.username), r.decode())
+                    r_detail['private'] = int(
+                        redis.hget(r_key, 'private').decode())
+                    requests_detail.append(r_detail)
+        return JsonResponse({'code': 1, 'msg': {'fans': fans_detail, 'requests': requests_detail}})
+
+
+class PassFollowRequest(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({'code': 2, 'msg': '用户尚未登录'})
+
+        uid = request.GET['uid']
+        redis = get_redis()
+
+        # 被关注者添加粉丝
+        redis.sadd('user:{}:fans'.format(request.user.username), uid)
+        # 关注者添加关注
+        redis.sadd('user:{}:follows'.format(uid), request.user.username)
+        # 移除请求
+        redis.srem('user:{}:followRequests'.format(request.user.username), uid)
+
+        return JsonResponse({'code': 1, 'msg': '请求通过'})
 
 
 class UserFollow(View):
@@ -194,9 +241,15 @@ class UserFollow(View):
         fOrUnf = request.GET['fOrUnf']
 
         if fOrUnf == 'follow':
-            redis.sadd("user:{}:follows".format(
-                request.user.username), identity)
-            redis.sadd("user:{}:fans".format(identity), request.user.username)
+            # 判断被关注用户是否设置了隐私账号
+            if int(redis.hget("user:{}:detail".format(identity), 'private').decode()):
+                redis.sadd("user:{}:followRequests".format(
+                    identity), request.user.username)
+            else:
+                redis.sadd("user:{}:follows".format(
+                    request.user.username), identity)
+                redis.sadd("user:{}:fans".format(
+                    identity), request.user.username)
         if fOrUnf == 'unfollow':
             redis.srem("user:{}:follows".format(
                 request.user.username), identity)
@@ -350,7 +403,7 @@ class ChangeAvatar(View):
             used_avatar = redis.hget('user:{}:detail'.format(
                 request.user.username), 'avatar').decode()
 
-            if used_avatar != 'http://pkfzvu3bh.bkt.clouddn.com/default.jpg':
+            if used_avatar != 'http://pm12un9mb.bkt.clouddn.com/default.jpg':
                 try:
                     bucket = BucketManager(q)
                     key = os.path.basename(used_avatar)
@@ -360,7 +413,7 @@ class ChangeAvatar(View):
                     pass
 
             # 更新头像地址
-            url = 'http://pkfzvu3bh.bkt.clouddn.com/{}'.format(file_name)
+            url = 'http://pm12un9mb.bkt.clouddn.com/{}'.format(file_name)
             redis.hset('user:{}:detail'.format(
                 request.user.username), 'avatar', url)
 
@@ -448,10 +501,10 @@ class GetMoments(View):
         follows = [follow.decode() for follow in follows]
         follows.append(request.user.username)
         photos = Photo.objects.annotate(replies_count=Count(
-            'replies')).filter(author_id__in=follows)
+            'replies')).filter(author_id__in=follows).filter(created_at__gte=datetime.now()-timedelta(days=7)).prefetch_related('tags')
         blogs = Blog.objects.annotate(replies_count=Count(
-            'replies')).filter(author_id__in=follows)
-        moments = chain(photos, blogs)
+            'replies')).filter(author_id__in=follows).filter(created_at__gte=datetime.now()-timedelta(days=7)).prefetch_related('tags')
+        moments = sorted(chain(photos, blogs), key=lambda instance: instance.created_at, reverse=True)
         items = []
         for r in moments:
             item = {}
@@ -459,9 +512,9 @@ class GetMoments(View):
             item['title'] = r.title
             item['app'] = r.app
             item['author_id'] = r.author_id
-            item['tags'] = [tag.name for tag in r.tags.all()]
             item['created_at'] = ct.convertDatetime(r.created_at)
             item['timestamp'] = ct.datetimeToTimeStamp(r.created_at)
+            item['tags'] = [tag.name for tag in r.tags.all()]
             item['author'] = redis.hget("user:{}:detail".format(
                 r.author_id), 'nickname').decode()
             item['author_avatar'] = redis.hget(
@@ -483,12 +536,24 @@ class GetMoments(View):
         return JsonResponse({'code': 1, 'msg': items})
 
 
-class getExplores(View):
+class GetExplores(View):
     def get(self, request):
-        photos = Photo.objects.annotate(replies_count=Count(
-            'replies', distinct=True) + Count('sub_replies', distinct=True))
-        blogs = Blog.objects.annotate(replies_count=Count(
-            'replies', distinct=True) + Count('sub_replies', distinct=True))
+        tag = request.GET['tag']
+        page = int(request.GET['page'])
+        p_from_index = 12*(page - 1)
+        b_from_index = 6*(page-1)
+        # 探索
+        if not tag:
+            photos = Photo.objects.annotate(replies_count=Count(
+                'replies', distinct=True) + Count('sub_replies', distinct=True))[p_from_index:p_from_index+12]
+            blogs = Blog.objects.annotate(replies_count=Count(
+                'replies', distinct=True) + Count('sub_replies', distinct=True))[b_from_index:b_from_index+6]
+        else:
+            photos = Photo.objects.annotate(replies_count=Count(
+                'replies', distinct=True) + Count('sub_replies', distinct=True)).filter(tags__name=tag)[p_from_index:p_from_index+12]
+            blogs = Blog.objects.annotate(replies_count=Count(
+                'replies', distinct=True) + Count('sub_replies', distinct=True)).filter(tags__name=tag)[b_from_index:b_from_index+6]
+
         explores = chain(photos, blogs)
         if explores:
             redis = get_redis()
@@ -511,6 +576,38 @@ class getExplores(View):
         return JsonResponse({'code': 2, 'msg': '暂无数据'})
 
 
+class SetPrivate(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({'code': 2, 'msg': '用户尚未登录'})
+
+        operate = request.GET['operate']
+        redis = get_redis()
+        key = "user:{}:detail".format(request.user.username)
+        if operate == 'open':
+            print('====')
+            redis.hset(key, 'private', 1)
+        if operate == 'close':
+            redis.hset(key, 'private', 0)
+
+        return JsonResponse({'code': 1, 'msg': '操作成功'})
+
+
+class SearchUsers(View):
+    def get(self, request):
+        searchText = request.GET['beginWith']
+        users = []
+        if len(searchText) is not 0:
+            redis = get_redis()
+            users = [{
+                    'username': user.username,
+                    'nickname': user.last_name,
+                    'avatar': redis.hget("user:{}:detail".format(user.username), 'avatar').decode()
+                } for user in User.objects.filter(Q(username__startswith=searchText) | Q(last_name__startswith=searchText))]
+        return JsonResponse({'code': 1, 'msg': users})
+            
+
+
 def get_user_detail(uid):
     redis = get_redis()
     redis_key = "user:{}:detail".format(uid)
@@ -519,6 +616,7 @@ def get_user_detail(uid):
         'nickname': redis.hget(redis_key, 'nickname').decode(),
         'avatar': redis.hget(redis_key, 'avatar').decode(),
         'bio': redis.hget(redis_key, 'bio').decode(),
+        'private': int(redis.hget(redis_key, 'private').decode()),
         'website': redis.hget(redis_key, 'website').decode(),
         'follows': redis.scard("user:{}:follows".format(uid)),
         'fans': redis.scard("user:{}:fans".format(uid)),

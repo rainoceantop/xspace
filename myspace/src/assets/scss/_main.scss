@@ -1,13 +1,21 @@
 @import 'config';
 @import 'var';
 
-.container {
-  width: 100%;
-  padding-right: 25px;
-  padding-left: 25px;
-  margin-right: auto;
-  margin-left: auto;
+
+.main-color{
+  color: $main-color;
 }
+.gray{
+ color:#A8A8A3;
+}
+
+
+.lightgray{
+  color :#e6e6e6
+};
+.blue{
+  color:#0A90FF
+};
 
 .avatar-bg {
   width: 100px !important;
@@ -62,8 +70,8 @@
     background-color: rgba(0, 0, 0, 0.3);
     font-size: 13px;
     color: $main-color;
-    margin-right: 1em;
-    margin-bottom: 1em;
+    margin-right: .5em;
+    margin-bottom: .5em;
     cursor: pointer;
   }
   .tag-hash-style {
@@ -72,12 +80,16 @@
     font-size: 13px;
     font-weight: bold;
     cursor: pointer;
+    &::before{
+      content: '#'
+    }
   }
 }
 
 .button-style {
   width: 120px;
   color: $main-color;
+  font-size: 15px;
   text-align: center;
   padding: 8px 0;
   background-color: $blue;
@@ -101,34 +113,4 @@
 }
 .success-label{
   color: green;
-}
-
-@include mediaXS{
-  .container {
-    max-width: 270px;
-  }
-}
-
-@include mediaSm{
-  .container {
-    max-width: 480px;
-  }
-}
-
-@include mediaMd{
-  .container {
-    max-width: 660px;
-  }
-}
-
-@include mediaLg{
-  .container {
-    max-width: 900px;
-  }
-}
-
-@include mediaXL{
-  .container {
-    max-width: 1080px;
-  }
 }

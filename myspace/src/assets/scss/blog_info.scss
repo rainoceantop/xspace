@@ -1,6 +1,6 @@
 @import "var";
 @import "config";
-.container {
+.blog-info {
   width: 100%;
   display: flex;
   justify-content: center;
@@ -44,10 +44,14 @@
   #body {
     margin-bottom: 10px;
     word-wrap: break-word;
-    overflow: auto;
+    word-break: break-all;
+  }
+  #title{
+    font-size: 20px;
   }
   #body {
     width: 100%;
+    font-size: 15px;
     padding-top: 1em;
   }
 
@@ -57,9 +61,6 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 25px;
-
-    .left {
-    }
 
     .right {
       #post-time {
@@ -88,23 +89,10 @@
     }
   }
 }
-@include mediaXS {
-  .container {
-    width: 100%;
-    padding: 0;
-    margin: 0;
-  }
-  .blog-info-wrap {
-    width: 100% !important;
-    margin: 0;
-    padding: 1em;
-    border: none;
-  }
-}
 @include mediaSm {
-  .container {
+  .blog-info {
     width: 100%;
-    padding: 0;
+    padding: 15px 0 0 0;
     margin: 0;
   }
   .blog-info-wrap {
@@ -112,5 +100,6 @@
     margin: 0;
     padding: 1em;
     border: none;
+    box-shadow: none;
   }
 }

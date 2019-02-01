@@ -148,6 +148,7 @@ export default {
       border: none;
     }
     input {
+      height: auto !important;
       padding: 8px;
     }
     textarea {

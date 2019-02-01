@@ -14,7 +14,8 @@ export default new Vuex.Store({
     id: 0,
     nickname: '',
     avatar: '',
-    bio: ''
+    bio: '',
+    private: 0
   },
   mutations: {
     login(state, user_detail) {
@@ -22,14 +23,16 @@ export default new Vuex.Store({
         state.id = user_detail.username
       state.nickname = user_detail.nickname,
         state.avatar = user_detail.avatar,
-        state.bio = user_detail.bio
+        state.bio = user_detail.bio,
+        state.private = user_detail.private
     },
     logout(state) {
       state.login = false,
         state.id = 0,
         state.nickname = '',
         state.avatar = '',
-        state.bio = ''
+        state.bio = '',
+        state.private = false
     }
   },
   actions: {

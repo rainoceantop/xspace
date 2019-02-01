@@ -14,9 +14,11 @@
       </div>
       <div v-if="user.username !== $store.state.id" class="c">
         <span
+          v-if="requests !== 'yes'"
           :class="['follow', user.followed? 'was-followed':'go-follow']"
           @click="fE(user)"
-        >{{ user.followed ? '已关注' : '关注' }}</span>
+        >{{ user.followlabel ? user.followlabel : user.followlabel = ( user.followed ? '已关注' : '关注') }}</span>
+        <span v-if="requests === 'yes'" class="follow go-follow" @click="pR(user)">通过</span>
       </div>
     </section>
   </div>
@@ -24,12 +26,17 @@
 
 <script>
 export default {
-  props: ["users"],
+  data() {
+    return {};
+  },
+  props: ["users", "requests"],
   methods: {
     fE: function(item) {
       if (this.$store.state.login) {
         if (item.followed) {
           item.followed = false;
+          item.followlabel = "关注";
+
           // 取消关注
           this.$axios
             .get(
@@ -40,11 +47,18 @@ export default {
             .then(response => {
               if (response.data.code !== 1) {
                 this.followed = true;
+                item.followlabel = "已关注";
+
                 alert(response.data.msg);
               }
             });
         } else {
           item.followed = true;
+          item.followlabel = "已关注";
+          if (item.private) {
+            item.followed = false;
+            item.followlabel = "请求中";
+          }
           // 关注
           this.$axios
             .get(
@@ -55,6 +69,7 @@ export default {
             .then(response => {
               if (response.data.code !== 1) {
                 item.followed = false;
+                item.followlabel = "关注";
 
                 alert(response.data.msg);
               }
@@ -64,6 +79,21 @@ export default {
         alert("请先登录");
         this.$router.push("/user/login");
       }
+    },
+    pR: function(item) {
+      this.$axios
+        .get(
+          `http://192.168.1.7:8000/api/homespace/passFollowRequest?uid=${
+            item.username
+          }`
+        )
+        .then(response => {
+          if (response.data.code === 1) {
+            this.$emit("pass", item);
+          } else {
+            alert(response.data.msg);
+          }
+        });
     }
   }
 };
@@ -83,7 +113,7 @@ export default {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  width: 80%;
+  width: 75%;
 }
 .b {
   line-height: 20px;
@@ -106,7 +136,8 @@ export default {
   }
 }
 .c {
-  width: 20%;
+  width: 25%;
   text-align: end;
+  font-size: 13px;
 }
 </style>

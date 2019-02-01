@@ -45,10 +45,11 @@ export default {
 
   .the-thumbnail {
     width: 100%;
-    height: 130px;
+    height: 7.5em;
     cursor: pointer;
 
     background-position: center;
+    background-size: cover;
     background-repeat: no-repeat;
 
     &:hover {

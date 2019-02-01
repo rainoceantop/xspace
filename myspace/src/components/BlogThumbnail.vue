@@ -7,7 +7,9 @@
       @click.native="$emit('showLeft')"
       :to="{name: 'blogInfo', params: {id: uid, blogid: blog.id}}"
     >
-      <p>{{ blog.title }}</p>
+      <div class="title-background">
+        <span>{{ blog.title.length > 40 ? blog.title.substring(0, 40) + '...' : blog.title }}</span>
+      </div>
     </router-link>
   </article>
 </template>
@@ -54,35 +56,46 @@ export default {
 
   .the-thumbnail {
     width: 100%;
-    height: 130px;
+    height: 7.5em;
     cursor: pointer;
 
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 0.5em;
 
-    background-image: url("../assets/images/02.jpg");
+    background-image: url("../assets/images/blog.jpg");
     background-position: center;
     background-repeat: no-repeat;
+    background-size: cover;
 
-    &:hover {
-      box-shadow: inset 0 0 25px $green;
+    .title-background {
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      box-shadow: inset 0 0 25px black;
+      height: 4.5em;
+      padding: 0.5em;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      span {
+        color: $main-color;
+        font-size: 15px;
+        text-align: start;
+        font-weight: bold;
+        word-wrap: break-word;
+        word-break: break-all;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+      }
     }
-
-    p {
-      text-align: start;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      font-weight: bold;
-      word-wrap: break-word;
-      word-break: break-all;
+    &:hover {
+      box-shadow: inset 0 0 25px $main-color;
     }
   }
   .shadow {
-    box-shadow: inset 0 0 25px $green;
+    box-shadow: inset 0 0 25px $main-color;
   }
 }
 </style>

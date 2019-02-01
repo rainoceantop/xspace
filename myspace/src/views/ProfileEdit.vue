@@ -11,6 +11,9 @@
         <li>
           <router-link :to="{name: 'passwordChange'}">修改密码</router-link>
         </li>
+        <li>
+          <router-link :to="{name: 'privacySetting'}">隐私设置</router-link>
+        </li>
       </ul>
       <keep-alive>
         <router-view class="edit-view" name="editView"></router-view>
@@ -21,6 +24,7 @@
 
 <style lang="scss" scoped>
 @import "../assets/scss/var";
+@import "../assets/scss/config";
 .profile-edit-wrap {
   padding: 50px;
   display: flex;
@@ -59,6 +63,34 @@
       width: 75%;
       height: 100%;
       padding: 2em;
+    }
+  }
+}
+
+@include mediaLg {
+}
+
+@include mediaMd {
+}
+@include mediaSm {
+  .profile-edit-wrap {
+    padding: 0;
+
+    .profile-edit-area {
+      width: 100%;
+    }
+  }
+}
+@include mediaXS {
+  .moment-page-wrap {
+    padding: 0;
+  }
+  .left {
+    width: 100%;
+  }
+  .moment-item {
+    header {
+      padding: 0.5em;
     }
   }
 }

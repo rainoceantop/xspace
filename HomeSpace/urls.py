@@ -14,11 +14,14 @@ urlpatterns = [
     path('updateDetail', views.UpdateDetail.as_view()),
     path('getUpdateData', views.GetUpdateData.as_view()),
     path('getFollows', views.GetFollows.as_view()),
-    path('getFans', views.GetFans.as_view()),
+    path('getFansAndRequests', views.GetFansAndRequests.as_view()),
+    path('passFollowRequest', views.PassFollowRequest.as_view()),
     path('getMoments', views.GetMoments.as_view()),
-    path('getExplores', views.getExplores.as_view()),
+    path('getExplores', views.GetExplores.as_view()),
     path('changePasswordByEmail', views.ChangePasswordByEmail.as_view()),
     path('changePasswordCheckToken', views.ChangePasswordCheckToken.as_view()),
     path('changePasswordByEmailConfirm',
          views.ChangePasswordByEmailConfirm.as_view()),
+    path('setPrivate', views.SetPrivate.as_view()),
+    path('searchUsers', views.SearchUsers.as_view())
 ]

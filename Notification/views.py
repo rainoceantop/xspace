@@ -63,7 +63,9 @@ def add_notification(**kwargs):
     one_or_many = kwargs['one_or_many']
     from_user_id = kwargs['from_user_id']
     action = kwargs['action']
-    body = kwargs['body']
+    body = kwargs['body'] if len(
+        kwargs['body']) < 150 else kwargs['body'][:147] + '...'
+    print(body)
     app = kwargs['app']
     expires_at = datetime.now() + timedelta(30)
     try:

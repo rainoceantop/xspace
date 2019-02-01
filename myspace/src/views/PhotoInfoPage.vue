@@ -2,23 +2,26 @@
   <div>
     <div class="info">
       <div class="photo-view">
-        <font-awesome-icon v-if="loading" :icon="['fas', 'spinner']" size="5x" spin/>
+        <font-awesome-icon v-if="loading" :icon="['fas', 'spinner']" size="3x" spin/>
         <img
           v-else
           oncontextmenu="return false"
           ondragstart="return false"
           v-show="photo"
-          class="the-photo animated fadeIn"
+          :class="['animated', 'fadeIn', 'the-photo', photo_zoom_in ? 'zoom-in' : '']"
           :src="photo.url"
-          alt
+          @click="toggleZoom()"
         >
+        <div v-if="photo_zoom_in" class="photo-zoom-in-wrapper"></div>
       </div>
 
-      <div v-show="photo && !loading" class="caption animated fadeIn">
-        <h3 v-if="photo.title">{{ photo.title }}</h3>
+      <div v-if="photo && !loading" class="caption animated fadeIn">
+        <h5 v-if="photo.title">{{ photo.title }}</h5>
         <p>{{ photo.caption }}</p>
         <div class="tag-display">
-          <span class="tag-style" v-for="tag in photo.tags" :key="tag">{{ tag }}</span>
+          <span class="tag-style" v-for="tag in photo.tags" :key="tag">
+            <router-link class="main-color" :to="{name: 'tag', params: {tagname: tag}}">{{ tag }}</router-link>
+          </span>
         </div>
         <div class="photo-footer">
           <span>
@@ -47,7 +50,7 @@
       </div>
     </div>
     <div class="container">
-      <Reply v-if="!loading" app="photo" :artical="photo" v-on:toggleLike="toggleLike"></Reply>
+      <Reply app="photo" :artical="photo" v-on:toggleLike="toggleLike"></Reply>
     </div>
   </div>
 </template>
@@ -59,7 +62,8 @@ export default {
     return {
       photo: "",
       cached_photo: {},
-      loading: true
+      loading: true,
+      photo_zoom_in: false
     };
   },
   created() {
@@ -108,6 +112,9 @@ export default {
           item.liked = item.liked ? false : true;
           alert(response.data.msg);
         });
+    },
+    toggleZoom: function() {
+      this.photo_zoom_in = this.photo_zoom_in ? false : true;
     }
   },
   watch: {

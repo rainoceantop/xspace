@@ -1,8 +1,8 @@
 <template>
-  <div class="notification-item-wrap">
+  <li class="collection-item avatar">
     <router-link :to="{name: 'myspace', params: {id: notification.from_user_id}}">
       <img
-        :class="['avatar-sm', notification.viewed ? '' : 'shadow-around']"
+        :class="['circle', notification.viewed ? '' : 'z-depth-3']"
         :src="notification.from_user_avatar"
         alt
       >
@@ -10,12 +10,10 @@
     <router-link
       :to="{name: getApp(notification), params: {photoid: getId(notification), blogid: getId(notification)}}"
     >
-      <div class="notification-content">
-        <p>{{ notification.body }}</p>
-        <span class="time">{{ notification.created_at }}</span>
-      </div>
+      <span class="title">{{ notification.body }}</span>
+      <p class="time">{{ notification.created_at }}</p>
     </router-link>
-  </div>
+  </li>
 </template>
 <script>
 export default {
@@ -37,33 +35,14 @@ export default {
 </script>
 <style lang="scss" scoped>
 @import "../../assets/scss/var";
-.notification-item-wrap {
+a {
+  color: black;
+}
+.collection-item {
   width: 100%;
-  padding: 1em;
-  display: grid;
-  grid-template-columns: 60px calc(100% - 4em);
-
-  .notification-content {
-    width: 100%;
-    p {
-      padding-bottom: 0.5em;
-    }
-    .time {
-      margin-top: 0.5em;
-      color: $gray;
-    }
-  }
-  &:hover {
-    cursor: pointer;
-    background-color: $lightgray;
-  }
-  .shadow-around {
-    box-shadow: 0 0 15px $blue;
-  }
-  a {
-    color: black;
-    font-size: 15px;
-    font-weight: normal;
-  }
+}
+.time {
+  margin-top: 0.5em;
+  color: $gray;
 }
 </style>

@@ -17,14 +17,21 @@
     <section v-if="firstFocus" class="reply-button animated fadeIn">
       <span class="cancel" @click="replyCancel">取消</span>
       <input
+        v-show="!replyOnSubmit"
         class="button-style"
         :disabled="this.replyInputValue.trim().length === 0"
         type="button"
         value="评论"
         @click="replySubmit"
       >
+      <button v-show="replyOnSubmit" class="button-style" disabled>
+        <font-awesome-icon :icon="['fas', 'spinner']" spin/>
+      </button>
     </section>
 
+    <div v-if="loading" class="center">
+      <font-awesome-icon :icon="['fas', 'spinner']" spin size="2x"/>
+    </div>
     <div class="reply-list">
       <div
         v-for="reply of replies.filter(item => {return item.show === true;})"
@@ -59,7 +66,7 @@
               <span class="like-count">{{ reply.likes }}</span>
             </div>
             <div>
-              <span class="reply-reply-button" @click="reply.replyBegin = true;">回复</span>
+              <span class="reply-reply-button" @click="replyreplyBegin($event, reply)">回复</span>
               <span
                 v-if="reply.from_user_id === $store.state.id"
                 class="reply-delete-button"
@@ -76,19 +83,23 @@
               v-on:blur="reply.replyOnFocus=false"
               v-on:focus="reply.replyOnFocus=true; reply.replyFirstFocus=true"
               @input="replyreplyInput($event, reply)"
-            >{{ reply.from_user_nickname }}&nbsp;</div>
+            ></div>
           </section>
           <div :class="reply.replyOnFocus ? 'progess-bar-1': 'progess-bar-0'"></div>
 
           <section v-if="reply.replyFirstFocus" class="reply-button animated fadeIn">
             <span class="cancel" @click="replyreplyCancel(reply)">取消</span>
             <input
+              v-show="!reply.replyOnSubmit"
               class="button-style"
               :disabled="reply.replyInputValue.trim().length === 0"
               type="button"
               value="回复"
               @click="replyreplySubmit(reply, reply, 'reply')"
             >
+            <button v-show="reply.replyOnSubmit" class="button-style" disabled>
+              <font-awesome-icon :icon="['fas', 'spinner']" spin/>
+            </button>
           </section>
           <p
             class="show-sub-reply-button"
@@ -140,7 +151,7 @@
                     <span class="like-count">{{ sub_reply.likes }}</span>
                   </div>
                   <div>
-                    <span class="reply-reply-button" @click="sub_reply.replyBegin = true;">回复</span>
+                    <span class="reply-reply-button" @click="replyreplyBegin($event, sub_reply)">回复</span>
                     <span
                       v-if="sub_reply.from_user_id === $store.state.id"
                       class="reply-delete-button"
@@ -157,7 +168,7 @@
                     v-on:blur="sub_reply.replyOnFocus=false"
                     v-on:focus="sub_reply.replyOnFocus=true; sub_reply.replyFirstFocus=true"
                     @input="replyreplyInput($event, sub_reply)"
-                  >{{ sub_reply.from_user_nickname }}&nbsp;</div>
+                  ></div>
                 </section>
 
                 <div :class="sub_reply.replyOnFocus ? 'progess-bar-1': 'progess-bar-0'"></div>
@@ -165,18 +176,27 @@
                 <section v-if="sub_reply.replyFirstFocus" class="reply-button animated fadeIn">
                   <span class="cancel" @click="replyreplyCancel(sub_reply)">取消</span>
                   <input
+                    v-show="!sub_reply.replyOnSubmit"
                     class="button-style"
                     :disabled="sub_reply.replyInputValue.trim().length === 0"
                     type="button"
                     value="回复"
                     @click="replyreplySubmit(reply, sub_reply, 'subreply')"
                   >
+                  <button v-show="sub_reply.replyOnSubmit" class="button-style" disabled>
+                    <font-awesome-icon :icon="['fas', 'spinner']" spin/>
+                  </button>
                 </section>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <div
+        class="more-replies-button"
+        v-if="end === false && loading === false"
+        @click="getReplies(app, artical, false);"
+      >查看更多评论</div>
     </div>
   </div>
 </template>
@@ -189,35 +209,65 @@ export default {
       replyInputOnFocus: false,
       replyInputValue: "",
       firstFocus: false,
-
+      replyOnSubmit: false,
+      page: 0,
+      end: false,
+      loading: true,
       replies: [],
       cached_replies: {}
     };
   },
   props: ["app", "artical"],
-  created() {
-    this.getReplies(this.app, this.artical);
-  },
   methods: {
-    getReplies: function(app, artical) {
+    getReplies: function(app, artical, fresh) {
+      this.loading = true;
       this.$axios
-        .get(`http://192.168.1.7:8000/api/${this.app}/reply?id=${artical.id}`)
+        .get(
+          `http://192.168.1.7:8000/api/${this.app}/reply?id=${
+            artical.id
+          }&page=${this.page + 1}`
+        )
         .then(response => {
+          this.page++;
           let rs = response.data.msg;
-          if (rs) {
+          if (fresh) {
             for (let r of rs) {
               r["displayChilds"] = false;
               r["replyBegin"] = false;
               r["replyOnFocus"] = false;
               r["replyFirstFocus"] = false;
+              r["replyOnSubmit"] = false;
               r["replyInputValue"] = "";
               r["show"] = true;
               r["getChilds"] = false;
               r["childs"] = [];
             }
+            this.replies = rs;
+            this.cached_replies[this.app + artical.id] = rs;
+            this.loading = false;
+          } else {
+            for (let r of rs) {
+              r["displayChilds"] = false;
+              r["replyBegin"] = false;
+              r["replyOnFocus"] = false;
+              r["replyOnSubmit"] = false;
+              r["replyFirstFocus"] = false;
+              r["replyInputValue"] = "";
+              r["show"] = true;
+              r["getChilds"] = false;
+              r["childs"] = [];
+              this.replies.push(r);
+            }
+            this.loading = false;
           }
-          this.replies = rs;
-          this.cached_replies[this.app + artical.id] = rs;
+          this.cached_replies[this.app + artical.id]["page"] = this.page;
+          if (rs.length < 10) {
+            this.end = true;
+            this.cached_replies[this.app + artical.id]["end"] = true;
+          } else {
+            this.end = false;
+            this.cached_replies[this.app + artical.id]["end"] = false;
+          }
         })
         .catch(error => {});
     },
@@ -235,17 +285,26 @@ export default {
         .then(response => {
           let rs = response.data.msg;
           if (rs) {
-            console.log(rs);
             for (let sr of rs) {
               sr["replyBegin"] = false;
               sr["replyOnFocus"] = false;
               sr["replyFirstFocus"] = false;
+              sr["replyOnSubmit"] = false;
               sr["replyInputValue"] = "";
               sr["show"] = true;
               reply.childs.push(sr);
             }
           }
         });
+    },
+
+    replyreplyBegin: function(event, reply) {
+      reply.replyBegin = true;
+      setTimeout(() => {
+        event.target.parentNode.parentNode.parentNode
+          .querySelector(".sub-reply-input")
+          .focus();
+      }, 100);
     },
 
     replyInput: function(event) {
@@ -261,6 +320,7 @@ export default {
       if (this.replyInputValue.length > 1000) {
         alert("回复内容内容过长");
       } else {
+        this.replyOnSubmit = true;
         this.$axios
           .post(`http://192.168.1.7:8000/api/${this.app}/replyStore`, {
             id: this.artical.id,
@@ -275,13 +335,16 @@ export default {
               reply["replyBegin"] = false;
               reply["replyOnFocus"] = false;
               reply["replyFirstFocus"] = false;
+              reply["replyOnSubmit"] = false;
               reply["replyInputValue"] = "";
               reply["show"] = true;
               reply["getChilds"] = false;
               reply["childs"] = [];
               this.replies.unshift(reply);
+              this.replyOnSubmit = false;
             } else {
               alert(response.data.msg);
+              this.replyOnSubmit = false;
             }
           });
       }
@@ -315,12 +378,14 @@ export default {
       reply["replyBegin"] = false;
       reply["replyOnFocus"] = false;
       reply["replyFirstFocus"] = false;
+      reply["replyOnSubmit"] = false;
       reply["replyInputValue"] = "";
     },
     replyreplySubmit: function(parent_reply, reply, level) {
       if (reply.replyInputValue.length > 1000) {
         alert("回复内容内容过长");
       } else {
+        reply.replyOnSubmit = true;
         let url = `http://192.168.1.7:8000/api/${this.app}/subReplyStore`;
         let reply_id = reply.id;
         let to_reply = 0;
@@ -343,15 +408,17 @@ export default {
               sr["replyBegin"] = false;
               sr["replyOnFocus"] = false;
               sr["replyFirstFocus"] = false;
+              sr["replyOnSubmit"] = false;
               sr["replyInputValue"] = "";
               sr["show"] = true;
-              parent_reply.childs.push(sr);
 
+              parent_reply.childs.push(sr);
               parent_reply.displayChilds = true;
               parent_reply.sub_replies_count++;
               this.replyreplyCancel(reply);
             } else {
               alert(response.data.msg);
+              reply.replyOnSubmit = true;
             }
           });
       }
@@ -359,9 +426,15 @@ export default {
   },
   watch: {
     artical(n, o) {
-      if (this.cached_replies[this.app + n.id] === undefined)
-        this.getReplies(this.app, n);
-      else this.replies = this.cached_replies[this.app + n.id];
+      if (this.cached_replies[this.app + n.id] === undefined) {
+        this.page = 0;
+        this.end = false;
+        this.getReplies(this.app, n, true);
+      } else {
+        this.page = this.cached_replies[this.app + n.id].page;
+        this.end = this.cached_replies[this.app + n.id].end;
+        this.replies = this.cached_replies[this.app + n.id];
+      }
     }
   }
 };
@@ -369,6 +442,7 @@ export default {
 
 <style lang="scss">
 @import "../../assets/scss/var";
+@import "../../assets/scss/config";
 .reply-area {
   padding: 1.5em 0;
   header {
@@ -388,7 +462,7 @@ export default {
       width: calc(100% - 50px);
       min-height: 25px;
       background: none;
-      padding: 0 10px 0 10px;
+      padding: 0 10px 4px 10px;
       margin: 10px 0 20px 0;
       border-bottom: 1px $gray solid;
       color: black;
@@ -531,6 +605,18 @@ export default {
       }
     }
   }
+  @include mediaSm {
+    .reply-list {
+      .reply-item {
+        margin-top: 1.5em;
+      }
+    }
+  }
+}
+.more-replies-button {
+  cursor: pointer;
+  color: black;
+  margin-top: 1em;
 }
 .progess-bar-1 {
   width: calc(100% - 50px);

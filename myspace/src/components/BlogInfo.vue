@@ -2,67 +2,77 @@
   <div style="position:relative">
     <div class="inner">
       <router-link
-        v-show="next"
+        v-if="next"
         class="nav-next animated zoomIn"
         :to="{name: 'blogInfo', params: {id:undefined, blogid: next}}"
       ></router-link>
       <router-link
-        v-show="prev"
+        v-if="prev"
         class="nav-prev animated zoomIn"
         :to="{name: 'blogInfo', params: {id:undefined, blogid: prev}}"
       ></router-link>
     </div>
-    <div class="container">
-      <font-awesome-icon v-if="loading" :icon="['fas', 'spinner']" size="5x" spin/>
-      <div v-else class="blog-info-wrap">
-        <div class="blog-header">
-          <h3 id="title">{{ blog.title }}</h3>
-          <div v-if="blog.author_id === $store.state.id" id="blog-operate-icons">
-            <font-awesome-icon id="blog-edit-icon" :icon="['fas', 'edit']" @click="blogEdit(blog)"/>
-            <font-awesome-icon
-              id="blog-delete-icon"
-              :icon="['fas', 'trash']"
-              @click="blogDelete(blog.id, blog.author_id)"
-            />
-          </div>
+    <div class="blog-info container">
+      <div class="blog-info-wrap">
+        <div v-if="loading" class="center">
+          <font-awesome-icon :icon="['fas', 'spinner']" size="3x" spin/>
         </div>
-        <div v-html="blog.body" id="body"></div>
-        <ul v-if="blog.tags" class="tag-display">
-          <li class="tag-style" v-for="tag in blog.tags" :key="tag">{{ tag }}</li>
-        </ul>
-        <footer class="artical-footer">
-          <aside class="left">
-            <span class="like-icon">
+        <div v-if="blog && !loading">
+          <div class="blog-header">
+            <h5 id="title">{{ blog.title }}</h5>
+            <div v-if="blog.author_id === $store.state.id" id="blog-operate-icons">
               <font-awesome-icon
-                @click="toggleLike('blog', blog)"
-                :icon="blogIcon"
-                size="lg"
-                style="color: #007CBA"
+                id="blog-edit-icon"
+                :icon="['fas', 'edit']"
+                @click="blogEdit(blog)"
               />
-            </span>
-            <span class="like-count">{{ blog.likes }}</span>
-          </aside>
-          <aside class="right">
-            <p id="post-time">发表时间：{{ blog.created_at }}</p>
-            <div class="author-detail">
-              <div>
-                <router-link :to="{name: 'myspace', params: {id: blog.author_id}}">
-                  <img class="avatar-sm" :src="blog.author_avatar" alt>
-                </router-link>
-              </div>
-              <div>
-                <router-link
-                  :to="{name: 'myspace', params: {id: blog.author_id}}"
-                  id="author-name"
-                >{{ blog.author }}</router-link>
-                <p id="author-follows">{{ blog.author_follows }}关注·{{ blog.author_fans }}粉丝</p>
-              </div>
+              <font-awesome-icon
+                id="blog-delete-icon"
+                :icon="['fas', 'trash']"
+                @click="blogDelete(blog.id, blog.author_id)"
+              />
             </div>
-          </aside>
-        </footer>
+          </div>
+          <div v-html="blog.body" id="body"></div>
+          <ul v-if="blog.tags" class="tag-display">
+            <li class="tag-style" v-for="tag in blog.tags" :key="tag">
+              <router-link class="main-color" :to="{name: 'tag', params: {tagname: tag}}">{{ tag }}</router-link>
+            </li>
+          </ul>
+          <footer class="artical-footer">
+            <aside class="left">
+              <span class="like-icon">
+                <font-awesome-icon
+                  @click="toggleLike('blog', blog)"
+                  :icon="blogIcon"
+                  size="lg"
+                  style="color: #007CBA"
+                />
+              </span>
+              <span class="like-count">{{ blog.likes }}</span>
+            </aside>
+            <aside class="right">
+              <p id="post-time">发表时间：{{ blog.created_at }}</p>
+              <div class="author-detail">
+                <div>
+                  <router-link :to="{name: 'myspace', params: {id: blog.author_id}}">
+                    <img class="avatar-sm" :src="blog.author_avatar" alt>
+                  </router-link>
+                </div>
+                <div>
+                  <router-link
+                    :to="{name: 'myspace', params: {id: blog.author_id}}"
+                    id="author-name"
+                  >{{ blog.author }}</router-link>
+                  <p id="author-follows">{{ blog.author_follows }}关注·{{ blog.author_fans }}粉丝</p>
+                </div>
+              </div>
+            </aside>
+          </footer>
+        </div>
 
         <span>{{ blog.replies_count }}条评论</span>
-        <Reply app="blog" :artical="blog" v-on:toggleLike="toggleLike"></Reply>
+        <Reply ref="reply-component" app="blog" :artical="blog" v-on:toggleLike="toggleLike"></Reply>
       </div>
     </div>
   </div>
@@ -80,10 +90,6 @@ export default {
       cached_blogs: {},
       loading: true
     };
-  },
-  created() {
-    this.$emit("countPN", this.blogid);
-    this.getBlog(this.blogid);
   },
   components: {
     Reply
@@ -174,7 +180,3 @@ export default {
   }
 };
 </script>
-<style lang="scss" scoped>
-@import "../assets/scss/blog_info";
-</style>
-

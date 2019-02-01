@@ -38,7 +38,12 @@
             <div :class="['blog', moment.fold ? 'fold': '']" v-if="moment.app === 'blog'">
               <div v-html="moment.body"></div>
               <ul v-if="moment.tags" class="tag-display">
-                <li class="tag-hash-style" v-for="tag in moment.tags" :key="tag">#{{ tag }}</li>
+                <li v-for="tag in moment.tags" :key="tag">
+                  <router-link
+                    class="tag-hash-style"
+                    :to="{name: 'tag', params: {tagname: tag}}"
+                  >{{ tag }}</router-link>
+                </li>
               </ul>
               <div class="fold-label" v-show="moment.fold" @click="moment.fold = false">
                 <p>展开剩余内容</p>
@@ -83,15 +88,14 @@
               >{{ moment.author }}</router-link>&nbsp;
               <span>{{ moment.caption }}</span>
               <ul v-if="moment.tags" class="tag-display">
-                <li v-for="tag in moment.tags" :key="tag" class="tag-hash-style">#{{ tag }}</li>
+                <li v-for="tag in moment.tags" :key="tag">
+                  <router-link
+                    class="tag-hash-style"
+                    :to="{name: 'tag', params: {tagname: tag}}"
+                  >{{ tag }}</router-link>
+                </li>
               </ul>
             </div>
-
-            <p
-              v-if="moment.replies_count > 0 && moment.replies.length === 0"
-              @click="getReplies(moment)"
-              class="view-comment"
-            >加载评论</p>
 
             <div v-for="reply in moment['replies']" :key="reply.id" class="comment-display">
               <router-link
@@ -100,6 +104,15 @@
               >{{ reply.from_user_nickname }}</router-link>&nbsp;
               <span>{{ reply.body }}</span>
             </div>
+            <p
+              v-if="moment.replies_count > 0 && moment.end === false && moment.loading_replies === false"
+              @click="getReplies(moment)"
+              class="view-comment"
+            >加载评论</p>
+            <span v-if="moment.loading_replies">
+              <font-awesome-icon :icon="['fas', 'spinner']" spin/>
+            </span>
+            
             <input
               class="comment-input"
               type="text"
@@ -111,7 +124,7 @@
           </footer>
         </section>
       </aside>
-      <aside class="right">
+      <aside class="right hide-on-med-and-down">
         <section class="moment-item">其他展示位</section>
       </aside>
     </div>
@@ -138,29 +151,34 @@ export default {
             let items = response.data.msg;
             for (let i = 0; i < items.length; i++) {
               items[i]["fold"] = true;
+              items[i]["page"] = 0;
+              items[i]["end"] = false;
+              items[i]["loading_replies"] = false;
             }
-            this.moments = items.sort(this.sortMoments);
+            this.moments = items;
           } else {
             alert(response.data.msg);
           }
         });
     },
-    sortMoments: function(a, b) {
-      let t1 = a.timestamp;
-      let t2 = b.timestamp;
-      if (t1 < t2) {
-        return 1;
-      } else if (t1 > t2) {
-        return -1;
-      } else {
-        return 0;
-      }
-    },
     getReplies: function(moment) {
+      moment.loading_replies = true;
       this.$axios
-        .get(`http://192.168.1.7:8000/api/${moment.app}/reply?id=${moment.id}`)
+        .get(
+          `http://192.168.1.7:8000/api/${moment.app}/reply?id=${
+            moment.id
+          }&page=${moment.page + 1}`
+        )
         .then(response => {
-          moment["replies"] = response.data.msg;
+          let items = response.data.msg;
+          for (let item of items) {
+            moment["replies"].push(item);
+          }
+          if (items.length < 10) {
+            moment["end"] = true;
+          }
+          moment["page"] += 1;
+          moment["loading_replies"] = false;
         })
         .catch(error => {
           alert(error);
@@ -221,6 +239,7 @@ export default {
 
 <style lang="scss" scoped>
 @import "../assets/scss/var";
+@import "../assets/scss/config";
 .container {
   width: 100%;
   display: flex;
@@ -247,14 +266,14 @@ export default {
   header {
     display: flex;
     justify-content: space-between;
-    padding: 1em 1.5em;
+    padding: 0.5em 1em;
     span:nth-child(1),
     span:nth-child(2) {
       display: flex;
       align-items: center;
     }
     span:nth-child(1) {
-      max-width: 85%;
+      max-width: 80%;
     }
     .author-name,
     .article-title {
@@ -358,13 +377,46 @@ export default {
       }
     }
     .comment-input {
+      height: auto;
+      padding-bottom: 5px;
       margin-top: 1em;
       background: none;
       display: block;
       outline: none;
       border: none;
-      padding: 2px;
       width: 100%;
+    }
+  }
+}
+
+@include mediaLg {
+}
+
+@include mediaMd {
+}
+@include mediaSm {
+  .moment-page-wrap {
+    padding: 0;
+  }
+  .left {
+    width: 100%;
+  }
+  .moment-item {
+    header {
+      padding: 0.5em;
+    }
+  }
+}
+@include mediaXS {
+  .moment-page-wrap {
+    padding: 0;
+  }
+  .left {
+    width: 100%;
+  }
+  .moment-item {
+    header {
+      padding: 0.5em;
     }
   }
 }

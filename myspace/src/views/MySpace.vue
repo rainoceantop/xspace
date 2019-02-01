@@ -1,27 +1,43 @@
 <template>
   <div>
-    <section :class="['right-panel',open?'':'hide']">
+    <section :class="['right-panel',open?'':'right-hide']">
       <header>
         <div id="user-detail">
           <div>
             <img class="avatar-bg" :src="avatar">
-            <p class="logout" @click="$store.dispatch('logout')">退出登录</p>
+            <p v-if="isSelf" class="logout" @click="$store.dispatch('logout')">退出登录</p>
           </div>
           <div id="left-detail">
             <p id="nickname">
               <span>{{ nickname }}</span>
+
               <router-link v-show="isSelf" class="edit-profile" :to="{name: 'profileEdit'}">编辑资料</router-link>
               <span
                 v-show="!isSelf"
                 :class="['follow', followed? 'was-followed':'go-follow']"
                 @click="followEvent"
-              >{{ followed ? '已关注' : '关注' }}</span>
+              >{{ followed ? '已关注' : followlabel }}</span>
             </p>
             <p id="ff">
-              <span class="ff" @click="currentThumbnail = 'Follows'">
+              <span
+                v-if="!isprivate || followed || isSelf"
+                class="ff"
+                @click="currentThumbnail = 'Follows'"
+              >
                 <strong>{{ follows }}</strong>&nbsp;关注
-              </span> ·
-              <span class="ff" @click="currentThumbnail = 'Fans'">
+              </span>
+              <span v-else>
+                <strong>{{ follows }}</strong>&nbsp;关注
+              </span>
+              ·
+              <span
+                v-if="!isprivate || followed || isSelf"
+                class="ff"
+                @click="currentThumbnail = 'Fans'"
+              >
+                <strong>{{ fans }}</strong>&nbsp;粉丝
+              </span>
+              <span v-else>
                 <strong>{{ fans }}</strong>&nbsp;粉丝
               </span>
             </p>
@@ -32,64 +48,50 @@
           </div>
         </div>
       </header>
-      <article id="channel" class="animated fadeIn">
-        <div v-if="isSelf" class="new" :style="newopenstyle">
-          <div class="new-icon" id="new-button-icon" @click="toggleNew"></div>
-          <router-link
-            class="new-icon animated fadeIn"
-            id="new-photo-icon"
-            v-show="newopen"
-            @click.native="photoCreate()"
-            :to="{name: 'photoCreate', params: {id: undefined}}"
-          ></router-link>
-          <router-link
-            class="new-icon animated fadeIn"
-            id="new-blog-icon"
-            v-show="newopen"
-            @click.native="blogCreate()"
-            :to="{name: 'blogCreate', params: {id: undefined}}"
-          ></router-link>
-        </div>
-        <div class="app-icons" id="photo-icon" @click="currentThumbnail = 'PhotoThumbnail'"></div>
-        <div class="app-icons" id="blog-icon" @click="currentThumbnail = 'BlogThumbnail'"></div>
-      </article>
-      <keep-alive>
-        <!-- <PhotoThumbnail
-          v-if="currentThumbnail='PhotoThumbnail'"
-          v-on:showLeft="l_show=true"
-          v-on:getPhotoSet="getPhotoSet()"
-          :photos="photos"
-        ></PhotoThumbnail>
-        <BlogThumbnail
-          v-if="currentThumbnail='BlogThumbnail'"
-          v-on:showLeft="l_show=true"
-          v-on:getBlogSet="getBlogSet()"
-          :blogs="blogs"
-        ></BlogThumbnail>-->
-        <component
-          v-bind:is="currentThumbnail"
-          v-on:showLeft="l_show=true"
-          v-on:getBlogSet="getBlogSet()"
-          v-on:getPhotoSet="getPhotoSet()"
-          :blogs="blogs"
-          :photos="photos"
-          :uid="cid"
-        ></component>
-      </keep-alive>
+      <div v-if="!isprivate || followed || isSelf">
+        <article id="channel" class="animated fadeIn">
+          <div v-if="isSelf" class="new" :style="newopenstyle">
+            <div class="new-icon" id="new-button-icon" @click="toggleNew"></div>
+            <router-link
+              class="new-icon animated fadeIn"
+              id="new-photo-icon"
+              v-show="newopen"
+              @click.native="photoCreate()"
+              :to="{name: 'photoCreate', params: {id: undefined}}"
+            ></router-link>
+            <router-link
+              class="new-icon animated fadeIn"
+              id="new-blog-icon"
+              v-show="newopen"
+              @click.native="blogCreate()"
+              :to="{name: 'blogCreate', params: {id: undefined}}"
+            ></router-link>
+          </div>
+          <div class="app-icons" id="photo-icon" @click="currentThumbnail = 'PhotoThumbnail'"></div>
+          <div class="app-icons" id="blog-icon" @click="currentThumbnail = 'BlogThumbnail'"></div>
+        </article>
+        <article>
+          <keep-alive>
+            <component
+              v-bind:is="currentThumbnail"
+              v-on:showLeft="l_show=true"
+              v-on:getBlogSet="getBlogSet()"
+              v-on:getPhotoSet="getPhotoSet()"
+              :blogs="blogs"
+              :photos="photos"
+              :uid="cid"
+            ></component>
+          </keep-alive>
+        </article>
+      </div>
+      <div v-else>
+        <h4>该账号为隐私账号</h4>
+        <p>关注TA即可了解TA的所有发表</p>
+      </div>
     </section>
     <section v-show="l_show" :class="['left-viewer', open?'':'fullscreen']">
-      <div class="mobile-close">
-        <font-awesome-icon @click="l_show=false" :icon="['fas', 'times-circle']" size="2x"></font-awesome-icon>
-      </div>
+      <div class="mobile-close" @click="l_show=false"></div>
       <div class="inner">
-        <!-- <router-link
-          class="nav-next"
-          :to="{name: 'blogInfo', params: {id:undefined, appid: nextappid}}"
-        ></router-link>
-        <router-link
-          class="nav-prev"
-          :to="{name: 'blogInfo', params: {id:undefined, appid: prevappid}}"
-        ></router-link>-->
         <div :class="[open?'close-icon':'open-icon']" @click="toggle"></div>
       </div>
       <div class="content animated fadeIn">
@@ -121,7 +123,6 @@ import BlogThumbnail from "@/components/BlogThumbnail";
 import PhotoThumbnail from "@/components/PhotoThumbnail";
 import Fans from "@/components/Fans";
 import Follows from "@/components/Follows";
-
 export default {
   name: "MySpace",
   components: {
@@ -138,9 +139,11 @@ export default {
       bio: "",
       website: "",
       avatar: "",
+      isprivate: 0,
       follows: 0,
       fans: 0,
       followed: false,
+      followlabel: "关注",
 
       greetings: "",
       open: true,
@@ -159,27 +162,25 @@ export default {
       prevappid: "",
       nextappid: "",
 
-      l_show: true
+      l_show: false
     };
   },
 
   created() {
-    const d = new Date();
-    let h = d.getHours();
-    if (h >= 6 && h < 12) this.greetings = "上午好";
-    else if (h >= 12 && h < 14) this.greetings = "中午好";
-    else if (h >= 14 && h < 19) this.greetings = "下午好";
-    else this.greetings = "晚上好";
-
-    this.cid = this.id;
-    this.init();
+    if (this.id !== undefined) {
+      this.cid = this.id;
+      this.init();
+    }
   },
   props: ["id"],
   methods: {
-    init() {
+    init: function() {
       this.getUserDetail();
     },
-    getUserDetail() {
+    listenBottom: function(e) {
+      console.log("---");
+    },
+    getUserDetail: function() {
       this.$axios
         .get(
           `http://192.168.1.7:8000/api/homespace/getUserDetail?username=${
@@ -193,6 +194,7 @@ export default {
             this.avatar = data.avatar;
             this.bio = data.bio;
             this.website = data.website;
+            this.isprivate = data.private;
             this.follows = data.follows;
             this.fans = data.fans;
             this.followed = data.followed;
@@ -223,8 +225,13 @@ export default {
               }
             });
         } else {
-          this.followed = true;
-          this.fans++;
+          if (!this.isprivate) {
+            this.followed = true;
+            this.fans++;
+            this.followlabel = "已关注";
+          } else {
+            this.followlabel = "请求中";
+          }
 
           // 关注
           this.$axios
@@ -236,6 +243,7 @@ export default {
             .then(response => {
               if (response.data.code !== 1) {
                 this.followed = false;
+                this.followlabel = "关注";
                 this.fans--;
 
                 alert(response.data.msg);
@@ -430,7 +438,7 @@ export default {
     #user-detail {
       display: flex;
       flex-direction: row;
-      justify-content: first baseline;
+      justify-content: flex-start;
       align-items: flex-start;
       flex-wrap: nowrap;
       margin-top: 1em;
@@ -532,21 +540,18 @@ export default {
   #blog-icon {
     background-image: url("../assets/images/blog-icon.png");
   }
-  #diary-icon {
-    background-image: url("../assets/images/diary-icon.png");
-  }
   #photo-icon {
     background-image: url("../assets/images/photo-icon.png");
   }
 }
 
-.hide {
+.right-hide {
   visibility: hidden;
   right: -25em;
 }
 .left-viewer {
   width: calc(100% - 25em);
-  height: calc(100% - 60px);
+  height: calc(100% - 64px);
   visibility: visible;
   @include easeOut;
   .mobile-close {
@@ -563,37 +568,6 @@ export default {
 
     * {
       pointer-events: auto;
-    }
-
-    .nav-next {
-      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-      position: absolute;
-      right: 0;
-      top: calc((100vh - 60px) / 2);
-      width: 6em;
-      height: 6em;
-      margin-top: -3em;
-      background-image: url("../assets/images/arrow.svg");
-      background-position: center;
-      background-repeat: no-repeat;
-      background-size: contain;
-      cursor: pointer;
-    }
-
-    .nav-prev {
-      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-      position: absolute;
-      transform: scaleX(-1);
-      left: 0;
-      top: calc((100vh - 60px) / 2);
-      width: 6em;
-      height: 6em;
-      margin-top: -3em;
-      background-image: url("../assets/images/arrow.svg");
-      background-position: center;
-      background-repeat: no-repeat;
-      background-size: contain;
-      cursor: pointer;
     }
 
     .open-icon,
@@ -631,84 +605,41 @@ export default {
 
 .fullscreen {
   width: 100%;
-  height: calc(100% - 60px);
-}
-
-@include mediaXS {
-  .right-panel {
-    width: 100% !important;
-    padding: 0;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1;
-  }
-  .open-icon,
-  .close-icon {
-    display: none;
-  }
-  .left-viewer {
-    width: 100vw !important;
-    min-height: 100%;
-    background: rgba($color: #1d1e09, $alpha: 0.95);
-    color: whitesmoke;
-    padding: 0;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 2;
-    .mobile-close {
-      margin: 1em;
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-    }
-  }
-  #channel {
-    height: 80px;
-    display: -webkit-box !important;
-    white-space: nowrap;
-    overflow-x: scroll;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .app-icons {
-    width: 60px;
-    height: 60px;
-    background-repeat: no-repeat;
-    background-size: 50px 50px;
-    background-position: center;
-  }
+  height: calc(100% - 64px);
 }
 @include mediaSm {
   .right-panel {
-    width: 100% !important;
+    width: 100%;
+    top: 56px;
     padding: 0;
-    position: fixed;
-    top: 0;
-    left: 0;
     z-index: 1;
+    height: calc(100% - 56px);
   }
   .open-icon,
   .close-icon {
     display: none;
   }
   .left-viewer {
-    width: 100vw !important;
-    min-height: 100%;
-    background: rgba($color: #1d1e09, $alpha: 0.95);
-    color: whitesmoke;
-    padding: 0;
-    position: absolute;
+    background-color: $main-color;
+    position: fixed;
+    overflow-y: auto;
+    width: 100%;
+    height: calc(100% - 56px);
     left: 0;
-    top: 0;
+    top: 56px;
     z-index: 2;
     .mobile-close {
-      margin: 1em;
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
+      display: block;
+      position: fixed;
+      right: 10px;
+      top: 66px;
+      width: 2.5em;
+      height: 2.5em;
+      z-index: 3;
+      background-image: url("../assets/images/close-small-alt.svg");
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
     }
   }
   #channel {
@@ -726,25 +657,6 @@ export default {
     background-repeat: no-repeat;
     background-size: 60px 60px;
     background-position: center;
-  }
-}
-
-@include mediaMd {
-  .right-panel {
-    width: 19em;
-  }
-  .left-viewer {
-    width: 100%;
-  }
-  .close-icon {
-    position: absolute;
-    left: calc(100% - 19em - 80px) !important;
-    top: 0;
-    @include easeOut;
-  }
-  .nav-prev,
-  .nav-next {
-    display: none;
   }
 }
 </style>

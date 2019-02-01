@@ -3,35 +3,38 @@
     <div class="info">
       <div class="inner">
         <router-link
-          v-show="next"
+          v-if="next"
           class="nav-next animated zoomIn"
           :to="{name: 'photoInfo', params: {id:undefined, photoid: next}}"
         ></router-link>
         <router-link
-          v-show="prev"
+          v-if="prev"
           class="nav-prev animated zoomIn"
           :to="{name: 'photoInfo', params: {id:undefined, photoid: prev}}"
         ></router-link>
       </div>
 
       <div class="photo-view">
-        <font-awesome-icon v-if="loading" :icon="['fas', 'spinner']" size="5x" spin/>
+        <font-awesome-icon v-if="loading" :icon="['fas', 'spinner']" size="3x" spin/>
         <img
           v-else
           oncontextmenu="return false"
           ondragstart="return false"
           v-show="photo"
-          class="the-photo animated fadeIn"
+          :class="['animated', 'fadeIn', 'the-photo', photo_zoom_in ? 'zoom-in' : '']"
           :src="photo.url"
-          alt
+          @click="toggleZoom()"
         >
+        <div v-if="photo_zoom_in" class="photo-zoom-in-wrapper"></div>
       </div>
 
-      <div v-show="photo && !loading" class="caption animated fadeIn">
-        <h3 v-if="photo.title">{{ photo.title }}</h3>
+      <div v-if="photo && !loading" class="caption animated fadeIn">
+        <h5 v-if="photo.title">{{ photo.title }}</h5>
         <p>{{ photo.caption }}</p>
         <ul v-if="photo.tags" class="tag-display">
-          <li class="tag-style" v-for="tag in photo.tags" :key="tag">{{ tag }}</li>
+          <li class="tag-style" v-for="tag in photo.tags" :key="tag">
+            <router-link class="main-color" :to="{name: 'tag', params: {tagname: tag}}">{{ tag }}</router-link>
+          </li>
         </ul>
         <div class="photo-footer">
           <span>
@@ -76,7 +79,7 @@
       </div>
     </div>
     <div class="container">
-      <Reply v-if="!loading" app="photo" :artical="photo" v-on:toggleLike="toggleLike"></Reply>
+      <Reply app="photo" :artical="photo" v-on:toggleLike="toggleLike"></Reply>
     </div>
   </div>
 </template>
@@ -88,13 +91,9 @@ export default {
     return {
       photo: "",
       cached_photos: {},
-      loading: true
+      loading: true,
+      photo_zoom_in: false
     };
-  },
-  created() {
-    this.$emit("countPN", this.photoid);
-
-    this.getPhoto(this.photoid);
   },
   props: ["photoid", "prev", "next"],
   components: { Reply },
@@ -161,6 +160,9 @@ export default {
             });
         }
       }
+    },
+    toggleZoom: function() {
+      this.photo_zoom_in = this.photo_zoom_in ? false : true;
     }
   },
   activated() {
@@ -183,8 +185,3 @@ export default {
   }
 };
 </script>
-
-
-<style lang="scss">
-@import "../assets/scss/photo_info";
-</style>

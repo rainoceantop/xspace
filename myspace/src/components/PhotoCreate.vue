@@ -197,13 +197,14 @@ export default {
 
 <style lang="scss" scoped>
 @import "../assets/scss/var";
+@import "../assets/scss/config";
 .container {
   width: 100%;
   display: flex;
   justify-content: center;
 }
 .photo-create-wrap {
-  width: 90%;
+  width: 70%;
   padding: 2em 5em;
   // background-color: yellowgreen;
   text-align: start;
@@ -236,6 +237,7 @@ export default {
       border: none;
     }
     input {
+      height: auto;
       padding: 8px;
     }
     textarea {
@@ -250,5 +252,13 @@ export default {
   width: 100%;
   display: flex;
   justify-content: center;
+}
+
+@include mediaSm {
+  .photo-create-wrap {
+    width: 100%;
+    padding: 1em;
+    margin-top: 0;
+  }
 }
 </style>

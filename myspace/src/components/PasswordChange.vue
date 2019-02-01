@@ -111,6 +111,7 @@ export default {
     input {
       width: 100%;
       border: none;
+      height: auto !important;
       padding: 8px;
     }
   }
