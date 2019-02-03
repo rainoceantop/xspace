@@ -91,7 +91,7 @@ class BlogStore(View):
             author_id=request.user.username
         )
         for tag in tags:
-            tag = tag.replace(' ', '')
+            tag = tag.replace(' ', '').replace('#', '')[:20]
             t = Tag.objects.filter(name=tag).first()
             if not t:
                 t = Tag(name=tag)
@@ -231,8 +231,10 @@ class BlogReplyGet(View):
 class BlogSubReplyGet(View):
     def get(self, request):
         reply_id = request.GET['id']
+        page = int(request.GET['page'])
+        from_index = 10 * (page - 1)
         replies = BlogSubReply.objects.filter(
-            reply_id=reply_id)[:10]
+            reply_id=reply_id)[from_index:from_index+10]
         if replies:
             redis = get_redis()
             ct = ConvertTime()

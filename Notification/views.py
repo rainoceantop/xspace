@@ -3,7 +3,7 @@ from django.views import View
 from .models import Notification
 from datetime import datetime, timedelta
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, Count
 from MyHome.utils import get_redis, ConvertTime
 # Create your views here.
 
@@ -13,6 +13,8 @@ class GetNotifyCount(View):
         if not request.user.is_authenticated:
             return JsonResponse({'code': 4, 'msg': '用户尚未登录'})
 
+        # notify_count = Notification.objects.aggregate(num=Count('id', filter=(
+        #     Q(to_user_id=request.user.username) & Q(viewed=False))))
         notify_count = Notification.objects.filter(
             Q(to_user_id=request.user.username) & Q(viewed=False)).count()
         return JsonResponse({'code': 1, 'msg': notify_count})

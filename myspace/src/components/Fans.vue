@@ -7,6 +7,7 @@
         :users="requests"
         requests="yes"
         v-on:pass="passFollowDone"
+        v-on:cancel="cancelFollowDone"
       ></UserItem>
       <p v-else style="text-align: center;">暂无关注请求</p>
     </div>
@@ -51,6 +52,12 @@ export default {
     },
     passFollowDone: function(item) {
       this.fans.unshift(item);
+      this.rmRequests(item);
+    },
+    cancelFollowDone: function(item) {
+      this.rmRequests(item);
+    },
+    rmRequests: function(item) {
       for (let i = 0; i < this.requests.length; i++) {
         if (this.requests[i].username === item.username) {
           this.requests.splice(i, 1);

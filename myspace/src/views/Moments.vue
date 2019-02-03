@@ -123,6 +123,9 @@
             >
           </footer>
         </section>
+        <div v-if="loading" class="center">
+          <font-awesome-icon :icon="['fas', 'spinner']" spin size="2x"/>
+        </div>
       </aside>
       <aside class="right hide-on-med-and-down">
         <section class="moment-item">其他展示位</section>
@@ -136,7 +139,8 @@ export default {
   name: "Moments",
   data() {
     return {
-      moments: []
+      moments: [],
+      loading: true
     };
   },
   created() {
@@ -159,6 +163,7 @@ export default {
           } else {
             alert(response.data.msg);
           }
+          this.loading = false;
         });
     },
     getReplies: function(moment) {

@@ -213,22 +213,27 @@ class GetFansAndRequests(View):
         return JsonResponse({'code': 1, 'msg': {'fans': fans_detail, 'requests': requests_detail}})
 
 
-class PassFollowRequest(View):
+class FollowRequest(View):
     def get(self, request):
         if not request.user.is_authenticated:
             return JsonResponse({'code': 2, 'msg': '用户尚未登录'})
 
         uid = request.GET['uid']
+        way = request.GET['way']
         redis = get_redis()
 
-        # 被关注者添加粉丝
-        redis.sadd('user:{}:fans'.format(request.user.username), uid)
-        # 关注者添加关注
-        redis.sadd('user:{}:follows'.format(uid), request.user.username)
-        # 移除请求
-        redis.srem('user:{}:followRequests'.format(request.user.username), uid)
+        if way == 'pass':
+            # 被关注者添加粉丝
+            redis.sadd('user:{}:fans'.format(request.user.username), uid)
+            # 关注者添加关注
+            redis.sadd('user:{}:follows'.format(uid), request.user.username)
+            # 移除请求
+            redis.srem('user:{}:followRequests'.format(request.user.username), uid)
+        else:
+            # 移除请求
+            redis.srem('user:{}:followRequests'.format(request.user.username), uid)
 
-        return JsonResponse({'code': 1, 'msg': '请求通过'})
+        return JsonResponse({'code': 1})
 
 
 class UserFollow(View):
@@ -585,7 +590,6 @@ class SetPrivate(View):
         redis = get_redis()
         key = "user:{}:detail".format(request.user.username)
         if operate == 'open':
-            print('====')
             redis.hset(key, 'private', 1)
         if operate == 'close':
             redis.hset(key, 'private', 0)

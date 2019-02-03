@@ -29,9 +29,6 @@
       </button>
     </section>
 
-    <div v-if="loading" class="center">
-      <font-awesome-icon :icon="['fas', 'spinner']" spin size="2x"/>
-    </div>
     <div class="reply-list">
       <div
         v-for="reply of replies.filter(item => {return item.show === true;})"
@@ -189,6 +186,14 @@
                 </section>
               </div>
             </div>
+            <p
+              v-if="reply.end === false && reply.loading_replies === false"
+              @click="getSubReplies(reply)"
+              class="more-replies-button"
+            >加载更多评论</p>
+            <span v-if="reply.loading_replies">
+              <font-awesome-icon :icon="['fas', 'spinner']" spin/>
+            </span>
           </div>
         </div>
       </div>
@@ -197,6 +202,9 @@
         v-if="end === false && loading === false"
         @click="getReplies(app, artical, false);"
       >查看更多评论</div>
+      <div v-if="loading" class="center">
+        <font-awesome-icon :icon="['fas', 'spinner']" spin size="lg"/>
+      </div>
     </div>
   </div>
 </template>
@@ -238,6 +246,9 @@ export default {
               r["replyFirstFocus"] = false;
               r["replyOnSubmit"] = false;
               r["replyInputValue"] = "";
+              r["page"] = 0;
+              r["end"] = false;
+              r["loading_replies"] = false;
               r["show"] = true;
               r["getChilds"] = false;
               r["childs"] = [];
@@ -252,6 +263,9 @@ export default {
               r["replyOnFocus"] = false;
               r["replyOnSubmit"] = false;
               r["replyFirstFocus"] = false;
+              r["page"] = 0;
+              r["end"] = false;
+              r["loading_replies"] = false;
               r["replyInputValue"] = "";
               r["show"] = true;
               r["getChilds"] = false;
@@ -280,21 +294,29 @@ export default {
       }
     },
     getSubReplies: function(reply) {
+      reply.loading_replies = true;
       this.$axios
-        .get(`http://192.168.1.7:8000/api/${this.app}/subReply?id=${reply.id}`)
+        .get(
+          `http://192.168.1.7:8000/api/${this.app}/subReply?id=${
+            reply.id
+          }&page=${reply.page + 1}`
+        )
         .then(response => {
           let rs = response.data.msg;
-          if (rs) {
-            for (let sr of rs) {
-              sr["replyBegin"] = false;
-              sr["replyOnFocus"] = false;
-              sr["replyFirstFocus"] = false;
-              sr["replyOnSubmit"] = false;
-              sr["replyInputValue"] = "";
-              sr["show"] = true;
-              reply.childs.push(sr);
-            }
+          for (let sr of rs) {
+            sr["replyBegin"] = false;
+            sr["replyOnFocus"] = false;
+            sr["replyFirstFocus"] = false;
+            sr["replyOnSubmit"] = false;
+            sr["replyInputValue"] = "";
+            sr["show"] = true;
+            reply.childs.push(sr);
           }
+          if (rs.length < 10) {
+            reply.end = true;
+          }
+          reply.page += 1;
+          reply.loading_replies = false;
         });
     },
 
@@ -336,6 +358,9 @@ export default {
               reply["replyOnFocus"] = false;
               reply["replyFirstFocus"] = false;
               reply["replyOnSubmit"] = false;
+              reply["page"] = 0;
+              reply["end"] = false;
+              reply["loading_replies"] = false;
               reply["replyInputValue"] = "";
               reply["show"] = true;
               reply["getChilds"] = false;
@@ -444,7 +469,7 @@ export default {
 @import "../../assets/scss/var";
 @import "../../assets/scss/config";
 .reply-area {
-  padding: 1.5em 0;
+  padding: 1.5em 0.5em;
   header {
     margin-bottom: 1em;
   }

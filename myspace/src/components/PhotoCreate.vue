@@ -13,6 +13,7 @@
               ref="uploadPhoto"
               class="input-file"
               type="file"
+              accept="image/*"
               @change="changePhoto($event)"
             >
           </button>
@@ -167,7 +168,7 @@ export default {
     },
     addTag: function(tag) {
       this.tag = "";
-      tag = tag.replace(/\s+/g, "");
+      tag = tag.replace(/[\s#]+/g, "");
       if (tag) this.tags.push(tag);
     },
     removeTag: function(tag) {
@@ -257,8 +258,18 @@ export default {
 @include mediaSm {
   .photo-create-wrap {
     width: 100%;
-    padding: 1em;
+    padding: 1em 0 0 0;
     margin-top: 0;
+    border: none;
+    box-shadow: none;
+    .input {
+      width: 65%;
+    }
+    .display-photo {
+      img {
+        max-width: 100%;
+      }
+    }
   }
 }
 </style>

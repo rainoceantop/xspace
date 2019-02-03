@@ -119,6 +119,7 @@ export default new Vuex.Store({
         .catch(error => {
           alert(error)
         });
-    }
+    },
+
   }
 })

@@ -145,11 +145,10 @@ export default {
       followed: false,
       followlabel: "关注",
 
-      greetings: "",
       open: true,
       newopen: false,
       newopenstyle: "width:60px",
-      currentThumbnail: "BlogThumbnail",
+      currentThumbnail: "PhotoThumbnail",
 
       biscreate: true, // 是否创建，否为编辑
       blog: "", // 更新博客需要参数
@@ -176,9 +175,6 @@ export default {
   methods: {
     init: function() {
       this.getUserDetail();
-    },
-    listenBottom: function(e) {
-      console.log("---");
     },
     getUserDetail: function() {
       this.$axios
@@ -388,6 +384,11 @@ export default {
       }
     }
   },
+  activated() {
+    if (this.photo === "" && this.blog === "") {
+      this.l_show = false;
+    }
+  },
   computed: {
     isSelf: function() {
       return this.cid == this.$store.state.id;
@@ -425,7 +426,7 @@ export default {
   display: block;
   visibility: visible;
   overflow-x: hidden;
-  overflow-y: scroll;
+  overflow-y: auto;
 
   text-align: start;
   z-index: 10;
@@ -645,7 +646,7 @@ export default {
   #channel {
     height: 100px;
     display: -webkit-box !important;
-    overflow-x: scroll;
+    overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     white-space: nowrap;

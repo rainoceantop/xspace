@@ -18,7 +18,8 @@
           :class="['follow', user.followed? 'was-followed':'go-follow']"
           @click="fE(user)"
         >{{ user.followlabel ? user.followlabel : user.followlabel = ( user.followed ? '已关注' : '关注') }}</span>
-        <span v-if="requests === 'yes'" class="follow go-follow" @click="pR(user)">通过</span>
+        <span v-if="requests === 'yes'" class="follow go-follow" @click="fR(user, 'pass')">通过</span>
+        <span v-if="requests === 'yes'" class="follow was-followed" @click="fR(user, 'cancel')">取消</span>
       </div>
     </section>
   </div>
@@ -80,16 +81,16 @@ export default {
         this.$router.push("/user/login");
       }
     },
-    pR: function(item) {
+    fR: function(item, way) {
       this.$axios
         .get(
-          `http://192.168.1.7:8000/api/homespace/passFollowRequest?uid=${
+          `http://192.168.1.7:8000/api/homespace/followRequest?uid=${
             item.username
-          }`
+          }&way=${way}`
         )
         .then(response => {
           if (response.data.code === 1) {
-            this.$emit("pass", item);
+            this.$emit(way, item);
           } else {
             alert(response.data.msg);
           }
@@ -107,13 +108,13 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
+  padding: 10px;
 }
 .a {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  width: 75%;
+  width: 70%;
 }
 .b {
   line-height: 20px;
@@ -136,7 +137,7 @@ export default {
   }
 }
 .c {
-  width: 25%;
+  width: 30%;
   text-align: end;
   font-size: 13px;
 }

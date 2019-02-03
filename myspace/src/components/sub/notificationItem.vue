@@ -1,6 +1,6 @@
 <template>
-  <li class="collection-item avatar">
-    <router-link :to="{name: 'myspace', params: {id: notification.from_user_id}}">
+  <li :class="['collection-item', mobile ? '' : 'avatar']">
+    <router-link v-if="!mobile" :to="{name: 'myspace', params: {id: notification.from_user_id}}">
       <img
         :class="['circle', notification.viewed ? '' : 'z-depth-3']"
         :src="notification.from_user_avatar"
@@ -10,7 +10,7 @@
     <router-link
       :to="{name: getApp(notification), params: {photoid: getId(notification), blogid: getId(notification)}}"
     >
-      <span class="title">{{ notification.body }}</span>
+      <span :class="[mobile ? '' : 'title']">{{ notification.body }}</span>
       <p class="time">{{ notification.created_at }}</p>
     </router-link>
   </li>
@@ -19,7 +19,8 @@
 export default {
   name: "notificationItem",
   props: {
-    notification: Object
+    notification: Object,
+    mobile: false
   },
   methods: {
     getApp: function(notification) {
@@ -38,9 +39,7 @@ export default {
 a {
   color: black;
 }
-.collection-item {
-  width: 100%;
-}
+
 .time {
   margin-top: 0.5em;
   color: $gray;

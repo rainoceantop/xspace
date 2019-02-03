@@ -1,13 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import MySpace from './views/MySpace'
 import store from './store'
-import BlogInfo from './components/BlogInfo'
-import PhotoInfo from './components/PhotoInfo'
-import ProfileEdit from './views/ProfileEdit'
-import BlogInfoPage from './views/BlogInfoPage'
-import PhotoInfoPage from './views/PhotoInfoPage'
-import BlogCreate from './components/BlogCreate'
 import Home from './views/Home'
 
 
@@ -20,6 +13,9 @@ const router = new Router({
       path: '/',
       name: 'home',
       component: Home,
+      meta: {
+        title: '痕迹'
+      }
     },
     {
       path: '/tag/:tagname',
@@ -30,7 +26,10 @@ const router = new Router({
     {
       path: '/moments',
       name: 'moments',
-      component: () => import('./views/Moments')
+      component: () => import('./views/Moments'),
+      meta: {
+        title: '关注动态'
+      }
     },
     {
       path: '/b/:blogid',
@@ -42,7 +41,7 @@ const router = new Router({
           next(false)
         }
       },
-      component: BlogInfoPage,
+      component: () => import('./views/BlogInfoPage'),
       props: true
     },
     {
@@ -55,26 +54,23 @@ const router = new Router({
           next(false)
         }
       },
-      component: PhotoInfoPage,
+      component: () => import('./views/PhotoInfoPage'),
       props: true
     },
     {
       path: '/:id',
       name: 'myspace',
-      component: MySpace,
+      component: () => import('./views/MySpace'),
       props: true,
+      meta: {
+        title: '个人空间'
+      },
       children: [
-        {
-          path: 'blog',
-          component: MySpace,
-          props: true,
-        },
         {
           path: '/b/:blogid',
           name: 'blogInfo',
           components: {
-            default: MySpace,
-            leftView: BlogInfo
+            leftView: () => import('./components/BlogInfo')
           },
           props: {
             default: true,
@@ -85,8 +81,7 @@ const router = new Router({
           path: '/p/:photoid',
           name: 'photoInfo',
           components: {
-            default: MySpace,
-            leftView: PhotoInfo
+            leftView: () => import('./components/PhotoInfo')
           },
           props: {
             default: true,
@@ -96,13 +91,12 @@ const router = new Router({
         {
           path: '/create/blog',
           name: 'blogCreate',
-          components: {
-            default: MySpace,
-            leftView: BlogCreate
-          },
           beforeEnter: (to, from, next) => {
             if (store.state.login) next()
-            else next('/user/login')
+            else next('/')
+          },
+          components: {
+            leftView: () => import('./components/BlogCreate')
           },
           props: {
             default: true
@@ -111,13 +105,12 @@ const router = new Router({
         {
           path: '/create/photo',
           name: 'photoCreate',
-          components: {
-            default: MySpace,
-            leftView: () => import('./components/PhotoCreate')
-          },
           beforeEnter: (to, from, next) => {
             if (store.state.login) next()
-            else next('/user/login')
+            else next('/')
+          },
+          components: {
+            leftView: () => import('./components/PhotoCreate')
           },
           props: {
             default: true
@@ -128,9 +121,9 @@ const router = new Router({
       path: '/accounts',
       beforeEnter: (to, from, next) => {
         if (store.state.login) next()
-        else next('/user/login')
+        else next('/')
       },
-      component: ProfileEdit,
+      component: () => import('./views/ProfileEdit'),
       children: [
         {
           path: 'edit',
@@ -199,5 +192,11 @@ const router = new Router({
     return { x: 0, y: 0 }
   },
 })
-
+router.beforeEach((to, from, next) => {
+  /* 路由发生变化修改页面title */
+  if (to.meta.title) {
+    document.title = to.meta.title;
+  }
+  next();
+})
 export default router

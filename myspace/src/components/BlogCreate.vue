@@ -126,7 +126,7 @@ export default {
     },
     addTag: function(tag) {
       this.tag = "";
-      tag = tag.replace(/\s+/g, "");
+      tag = tag.replace(/[\s#]+/g, "");
       if (tag) this.tags.push(tag);
     },
     removeTag: function(tag) {
@@ -195,7 +195,9 @@ export default {
 @include mediaSm {
   .blog-create-wrap {
     width: 100%;
-    padding: 1em;
+    padding: 1em 0.5em 0 0.5em;
+    border: none;
+    box-shadow: none;
     margin-top: 0;
   }
 }

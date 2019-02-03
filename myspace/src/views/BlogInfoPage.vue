@@ -129,7 +129,3 @@ export default {
   }
 };
 </script>
-<style lang="scss">
-@import "../assets/scss/blog_info";
-</style>
-

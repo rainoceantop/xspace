@@ -179,6 +179,7 @@ export default {
       else {
         this.photo = this.cached_photos[n];
       }
+      this.photo_zoom_in = false;
       // 获取图片上下文图片
       this.$emit("countPN", this.photoid);
     }

@@ -117,6 +117,9 @@ export default {
       this.photo_zoom_in = this.photo_zoom_in ? false : true;
     }
   },
+  activated() {
+    this.photo_zoom_in = false;
+  },
   watch: {
     photoid(n, o) {
       if (!this.cached_photo[n]) {
@@ -129,8 +132,3 @@ export default {
 };
 </script>
 
-
-
-<style lang="scss">
-@import "../assets/scss/photo_info";
-</style>
