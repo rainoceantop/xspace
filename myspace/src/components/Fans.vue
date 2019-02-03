@@ -37,11 +37,7 @@ export default {
     init: function() {
       if (this.uid !== undefined) {
         this.$axios
-          .get(
-            `http://192.168.1.7:8000/api/homespace/getFansAndRequests?uid=${
-              this.uid
-            }`
-          )
+          .get(`/api/homespace/getFansAndRequests?uid=${this.uid}`)
           .then(response => {
             if (response.data.code === 1) {
               this.fans = response.data.msg.fans;

@@ -37,7 +37,7 @@ export default new Vuex.Store({
   },
   actions: {
     login(context, user) {
-      axios.post("http://192.168.1.7:8000/api/homespace/login", {
+      axios.post("/api/homespace/login", {
         username: user.username,
         password: user.password
       })
@@ -57,7 +57,7 @@ export default new Vuex.Store({
         });
     },
     logout(context) {
-      axios.get('http://192.168.1.7:8000/api/homespace/logout').then(response => {
+      axios.get('/api/homespace/logout').then(response => {
         if (response.data.code === 1) {
           context.commit('logout')
           router.push("/user/login");
@@ -68,7 +68,7 @@ export default new Vuex.Store({
       })
     },
     register(context, user) {
-      axios.post("http://192.168.1.7:8000/api/homespace/register", {
+      axios.post("/api/homespace/register", {
         username: user.username,
         nickname: user.nickname,
         password1: user.password1,
@@ -90,7 +90,7 @@ export default new Vuex.Store({
         });;
     },
     checkLoginAndPush(context) {
-      axios.get('http://192.168.1.7:8000/api/homespace/checkLogin')
+      axios.get('/api/homespace/checkLogin')
         .then(response => {
           if (response.data.code === 1) {
             context.commit("login", response.data.msg);
@@ -107,7 +107,7 @@ export default new Vuex.Store({
         });
     },
     checkLogin(context) {
-      axios.get('http://192.168.1.7:8000/api/homespace/checkLogin')
+      axios.get('/api/homespace/checkLogin')
         .then(response => {
           if (response.data.code === 1) {
             context.commit("login", response.data.msg);

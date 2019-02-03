@@ -47,9 +47,9 @@ export default {
     checkToken: function() {
       this.$axios
         .get(
-          `http://192.168.1.7:8000/api/homespace/changePasswordCheckToken?uid=${
-            this.uid
-          }&token=${this.token}`
+          `/api/homespace/changePasswordCheckToken?uid=${this.uid}&token=${
+            this.token
+          }`
         )
         .then(response => {
           if (response.data.code === 1) {
@@ -73,9 +73,9 @@ export default {
       this.error = false;
       this.$axios
         .post(
-          `http://192.168.1.7:8000/api/homespace/changePasswordByEmailConfirm?uid=${
-            this.uid
-          }&token=${this.token}`,
+          `/api/homespace/changePasswordByEmailConfirm?uid=${this.uid}&token=${
+            this.token
+          }`,
           {
             newpass1: this.newpass1,
             newpass2: this.newpass2

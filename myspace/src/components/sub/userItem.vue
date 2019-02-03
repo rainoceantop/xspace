@@ -41,7 +41,7 @@ export default {
           // 取消关注
           this.$axios
             .get(
-              `http://192.168.1.7:8000/api/homespace/userFollow?identity=${
+              `/api/homespace/userFollow?identity=${
                 item.username
               }&fOrUnf=unfollow`
             )
@@ -63,7 +63,7 @@ export default {
           // 关注
           this.$axios
             .get(
-              `http://192.168.1.7:8000/api/homespace/userFollow?identity=${
+              `/api/homespace/userFollow?identity=${
                 item.username
               }&fOrUnf=follow`
             )
@@ -83,11 +83,7 @@ export default {
     },
     fR: function(item, way) {
       this.$axios
-        .get(
-          `http://192.168.1.7:8000/api/homespace/followRequest?uid=${
-            item.username
-          }&way=${way}`
-        )
+        .get(`/api/homespace/followRequest?uid=${item.username}&way=${way}`)
         .then(response => {
           if (response.data.code === 1) {
             this.$emit(way, item);

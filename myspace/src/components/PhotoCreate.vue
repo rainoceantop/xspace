@@ -119,9 +119,9 @@ export default {
         alert("请至少给图片添加一个标签");
         return;
       }
-      let url = "http://192.168.1.7:8000/api/photo/store";
+      let url = "/api/photo/store";
       if (!this.piscreate) {
-        url = `http://192.168.1.7:8000/api/photo/${this.photo.id}/update`;
+        url = `/api/photo/${this.photo.id}/update`;
       }
       this.$axios
         .post(url, {
@@ -148,9 +148,7 @@ export default {
       formData.append("photo", photo);
       this.$axios({
         method: "post",
-        url: `http://192.168.1.7:8000/api/photo/upload?used_photo=${
-          this.used_photo
-        }`,
+        url: `/api/photo/upload?used_photo=${this.used_photo}`,
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data"

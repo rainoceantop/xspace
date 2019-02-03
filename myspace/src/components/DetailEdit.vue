@@ -65,20 +65,18 @@ export default {
   },
   methods: {
     getUpdateData: function() {
-      this.$axios
-        .get("http://192.168.1.7:8000/api/homespace/getUpdateData")
-        .then(response => {
-          if (response.data.code === 1) {
-            let data = response.data.msg;
-            this.nickname = data.nickname;
-            this.website = data.website;
-            this.bio = data.bio;
-            this.email = data.email;
-            this.firstname = data.firstname;
-          } else {
-            alert(response.data.msg);
-          }
-        });
+      this.$axios.get("/api/homespace/getUpdateData").then(response => {
+        if (response.data.code === 1) {
+          let data = response.data.msg;
+          this.nickname = data.nickname;
+          this.website = data.website;
+          this.bio = data.bio;
+          this.email = data.email;
+          this.firstname = data.firstname;
+        } else {
+          alert(response.data.msg);
+        }
+      });
     },
     updateDetail: function() {
       if (this.nickname.length === 0) {
@@ -111,7 +109,7 @@ export default {
       }
 
       this.$axios
-        .post("http://192.168.1.7:8000/api/homespace/updateDetail", {
+        .post("/api/homespace/updateDetail", {
           nickname: this.nickname,
           website: this.website,
           bio: this.bio,

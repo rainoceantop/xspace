@@ -178,11 +178,7 @@ export default {
     },
     getUserDetail: function() {
       this.$axios
-        .get(
-          `http://192.168.1.7:8000/api/homespace/getUserDetail?username=${
-            this.id
-          }`
-        )
+        .get(`/api/homespace/getUserDetail?username=${this.id}`)
         .then(response => {
           if (response.data.code === 1) {
             let data = response.data.msg;
@@ -208,9 +204,7 @@ export default {
           // 取消关注
           this.$axios
             .get(
-              `http://192.168.1.7:8000/api/homespace/userFollow?identity=${
-                this.id
-              }&fOrUnf=unfollow`
+              `/api/homespace/userFollow?identity=${this.id}&fOrUnf=unfollow`
             )
             .then(response => {
               if (response.data.code !== 1) {
@@ -231,11 +225,7 @@ export default {
 
           // 关注
           this.$axios
-            .get(
-              `http://192.168.1.7:8000/api/homespace/userFollow?identity=${
-                this.id
-              }&fOrUnf=follow`
-            )
+            .get(`/api/homespace/userFollow?identity=${this.id}&fOrUnf=follow`)
             .then(response => {
               if (response.data.code !== 1) {
                 this.followed = false;
@@ -270,27 +260,23 @@ export default {
     },
     getBlogSet: function() {
       // 获取博客
-      this.$axios
-        .get(`http://192.168.1.7:8000/api/blog/${this.cid}/blogset`)
-        .then(response => {
-          if (response.data.code === 1) {
-            this.blogs = response.data.msg;
-          } else {
-            this.blogs = [];
-          }
-        });
+      this.$axios.get(`/api/blog/${this.cid}/blogset`).then(response => {
+        if (response.data.code === 1) {
+          this.blogs = response.data.msg;
+        } else {
+          this.blogs = [];
+        }
+      });
     },
     getPhotoSet: function() {
       // 获取图片
-      this.$axios
-        .get(`http://192.168.1.7:8000/api/photo/${this.cid}/photoset`)
-        .then(response => {
-          if (response.data.code === 1) {
-            this.photos = response.data.msg;
-          } else {
-            this.photos = [];
-          }
-        });
+      this.$axios.get(`/api/photo/${this.cid}/photoset`).then(response => {
+        if (response.data.code === 1) {
+          this.photos = response.data.msg;
+        } else {
+          this.photos = [];
+        }
+      });
     },
     blogCreateDone: function(data) {
       this.currentThumbnail = "BlogThumbnail";

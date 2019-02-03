@@ -148,32 +148,26 @@ export default {
   },
   methods: {
     getMoments: function() {
-      this.$axios
-        .get("http://192.168.1.7:8000/api/homespace/getMoments")
-        .then(response => {
-          if (response.data.code === 1) {
-            let items = response.data.msg;
-            for (let i = 0; i < items.length; i++) {
-              items[i]["fold"] = true;
-              items[i]["page"] = 0;
-              items[i]["end"] = false;
-              items[i]["loading_replies"] = false;
-            }
-            this.moments = items;
-          } else {
-            alert(response.data.msg);
+      this.$axios.get("/api/homespace/getMoments").then(response => {
+        if (response.data.code === 1) {
+          let items = response.data.msg;
+          for (let i = 0; i < items.length; i++) {
+            items[i]["fold"] = true;
+            items[i]["page"] = 0;
+            items[i]["end"] = false;
+            items[i]["loading_replies"] = false;
           }
-          this.loading = false;
-        });
+          this.moments = items;
+        } else {
+          alert(response.data.msg);
+        }
+        this.loading = false;
+      });
     },
     getReplies: function(moment) {
       moment.loading_replies = true;
       this.$axios
-        .get(
-          `http://192.168.1.7:8000/api/${moment.app}/reply?id=${
-            moment.id
-          }&page=${moment.page + 1}`
-        )
+        .get(`/api/${moment.app}/reply?id=${moment.id}&page=${moment.page + 1}`)
         .then(response => {
           let items = response.data.msg;
           for (let item of items) {
@@ -199,7 +193,7 @@ export default {
       e.target.value = "";
       if (data.trim().length > 0) {
         this.$axios
-          .post(`http://192.168.1.7:8000/api/${moment.app}/replyStore`, {
+          .post(`/api/${moment.app}/replyStore`, {
             id: moment.id,
             body: data,
             to_user_id: moment.author_id
@@ -220,9 +214,7 @@ export default {
       item.likes = item.liked ? item.likes - 1 : item.likes + 1;
       // 先把样式改了
       item.liked = item.liked ? false : true;
-      let url = `http://192.168.1.7:8000/api/${app}/likes?way=${way}&id=${
-        item.id
-      }&aor=${aor}`;
+      let url = `/api/${app}/likes?way=${way}&id=${item.id}&aor=${aor}`;
       this.$axios
         .get(url)
         .then(response => {

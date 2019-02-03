@@ -273,7 +273,7 @@ export default {
   methods: {
     getNotifyCount: function() {
       this.$axios
-        .get("http://192.168.1.7:8000/api/notification/getNotifyCount")
+        .get("/api/notification/getNotifyCount")
         .then(response => {
           if (response.data.code === 1) {
             this.notify_count = response.data.msg;

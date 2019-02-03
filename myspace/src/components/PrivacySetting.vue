@@ -31,9 +31,7 @@ export default {
     setPrivate: function() {
       let operate = this.privacy ? "close" : "open";
       this.$axios
-        .get(
-          `http://192.168.1.7:8000/api/homespace/setPrivate?operate=${operate}`
-        )
+        .get(`/api/homespace/setPrivate?operate=${operate}`)
         .then(response => {
           if (response.data.code === 1) {
             this.privacy = this.privacy ? false : true;

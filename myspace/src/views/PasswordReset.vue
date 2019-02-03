@@ -55,11 +55,7 @@ export default {
         this.onSend = true;
         this.sendButtonMsg = "正在发送";
         this.$axios
-          .get(
-            `http://192.168.1.7:8000/api/homespace/changePasswordByEmail?email=${
-              this.username
-            }`
-          )
+          .get(`/api/homespace/changePasswordByEmail?email=${this.username}`)
           .then(response => {
             if (response.data.code === 1) {
               this.onBreak = true;

@@ -23,9 +23,7 @@ export default {
     init: function() {
       if (this.uid !== undefined) {
         this.$axios
-          .get(
-            `http://192.168.1.7:8000/api/homespace/getFollows?uid=${this.uid}`
-          )
+          .get(`/api/homespace/getFollows?uid=${this.uid}`)
           .then(response => {
             if (response.data.code === 1) {
               this.follows = response.data.msg;

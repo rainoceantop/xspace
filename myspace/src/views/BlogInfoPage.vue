@@ -75,17 +75,15 @@ export default {
     getBlog: function(id) {
       if (id !== undefined) {
         this.loading = true;
-        this.$axios
-          .get(`http://192.168.1.7:8000/api/blog/${id}`)
-          .then(response => {
-            if (response.data.code === 1) {
-              this.blog = response.data.msg;
-              this.cached_blog[id] = response.data.msg;
-            } else {
-              alert(response.data.msg);
-            }
-            this.loading = false;
-          });
+        this.$axios.get(`/api/blog/${id}`).then(response => {
+          if (response.data.code === 1) {
+            this.blog = response.data.msg;
+            this.cached_blog[id] = response.data.msg;
+          } else {
+            alert(response.data.msg);
+          }
+          this.loading = false;
+        });
       }
     },
     toggleLike: function(way, item) {
@@ -94,9 +92,7 @@ export default {
       item.likes = item.liked ? item.likes - 1 : item.likes + 1;
       // 先把样式改了
       item.liked = item.liked ? false : true;
-      let url = `http://192.168.1.7:8000/api/blog/likes?way=${way}&id=${
-        item.id
-      }&aor=${aor}`;
+      let url = `/api/blog/likes?way=${way}&id=${item.id}&aor=${aor}`;
       this.$axios
         .get(url)
         .then(response => {

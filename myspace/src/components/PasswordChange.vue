@@ -68,7 +68,7 @@ export default {
         } else {
           this.errorlabel = "";
           this.$axios
-            .post("http://192.168.1.7:8000/api/homespace/changePassword", {
+            .post("/api/homespace/changePassword", {
               oldpass: this.oldpass,
               newpass1: this.newpass1,
               newpass2: this.newpass2

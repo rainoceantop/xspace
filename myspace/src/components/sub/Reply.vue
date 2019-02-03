@@ -230,11 +230,7 @@ export default {
     getReplies: function(app, artical, fresh) {
       this.loading = true;
       this.$axios
-        .get(
-          `http://192.168.1.7:8000/api/${this.app}/reply?id=${
-            artical.id
-          }&page=${this.page + 1}`
-        )
+        .get(`/api/${this.app}/reply?id=${artical.id}&page=${this.page + 1}`)
         .then(response => {
           this.page++;
           let rs = response.data.msg;
@@ -296,11 +292,7 @@ export default {
     getSubReplies: function(reply) {
       reply.loading_replies = true;
       this.$axios
-        .get(
-          `http://192.168.1.7:8000/api/${this.app}/subReply?id=${
-            reply.id
-          }&page=${reply.page + 1}`
-        )
+        .get(`/api/${this.app}/subReply?id=${reply.id}&page=${reply.page + 1}`)
         .then(response => {
           let rs = response.data.msg;
           for (let sr of rs) {
@@ -344,7 +336,7 @@ export default {
       } else {
         this.replyOnSubmit = true;
         this.$axios
-          .post(`http://192.168.1.7:8000/api/${this.app}/replyStore`, {
+          .post(`/api/${this.app}/replyStore`, {
             id: this.artical.id,
             body: this.replyInputValue,
             to_user_id: this.artical.author_id
@@ -380,11 +372,7 @@ export default {
       } else {
         if (confirm("确定删除该评论吗？")) {
           this.$axios
-            .get(
-              `http://192.168.1.7:8000/api/${this.app}/reply/${
-                reply.id
-              }/delete?level=${level}`
-            )
+            .get(`/api/${this.app}/reply/${reply.id}/delete?level=${level}`)
             .then(response => {
               if (response.data.code === 1) {
                 reply["show"] = false;
@@ -411,7 +399,7 @@ export default {
         alert("回复内容内容过长");
       } else {
         reply.replyOnSubmit = true;
-        let url = `http://192.168.1.7:8000/api/${this.app}/subReplyStore`;
+        let url = `/api/${this.app}/subReplyStore`;
         let reply_id = reply.id;
         let to_reply = 0;
 

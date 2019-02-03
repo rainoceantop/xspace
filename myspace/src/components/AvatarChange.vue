@@ -42,7 +42,7 @@ export default {
       formData.append("avatar", avatar);
       this.$axios({
         method: "post",
-        url: "http://192.168.1.7:8000/api/homespace/changeAvatar",
+        url: "/api/homespace/changeAvatar",
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data"

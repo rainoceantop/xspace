@@ -60,7 +60,7 @@ export default {
   methods: {
     getExplores: function(fresh) {
       this.loading = true;
-      let url = `http://192.168.1.7:8000/api/homespace/getExplores?tag=${
+      let url = `/api/homespace/getExplores?tag=${
         this.tagname === undefined ? "" : this.tagname
       }&page=${this.page + 1}`;
       this.$axios.get(url).then(response => {

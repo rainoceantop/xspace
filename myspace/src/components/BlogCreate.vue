@@ -73,7 +73,7 @@ export default {
         language: "zh-cn",
         ckfinder: {
           uploadUrl:
-            "http://192.168.1.7:8000/api/blog/fileupload?command=QuickUpload&type=Files&responseType=json"
+            "/api/blog/fileupload?command=QuickUpload&type=Files&responseType=json"
         }
       }
     };
@@ -92,9 +92,9 @@ export default {
       else if (this.editorData.length < 100) alert("内容至少一百字以上");
       else if (this.tags.length === 0) alert("请至少添加一个标签");
       else {
-        let url = "http://192.168.1.7:8000/api/blog/store";
+        let url = "/api/blog/store";
         if (!this.biscreate) {
-          url = `http://192.168.1.7:8000/api/blog/${this.blog.id}/update`;
+          url = `/api/blog/${this.blog.id}/update`;
         }
         this.$axios({
           url: url,

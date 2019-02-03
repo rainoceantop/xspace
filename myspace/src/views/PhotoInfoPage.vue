@@ -76,17 +76,15 @@ export default {
       if (id !== undefined) {
         this.loading = true;
         this.photo = "";
-        this.$axios
-          .get(`http://192.168.1.7:8000/api/photo/${id}`)
-          .then(response => {
-            if (response.data.code === 1) {
-              this.photo = response.data.msg;
-              this.cached_photo[id] = response.data.msg;
-            } else {
-              alert(response.data.msg);
-            }
-            this.loading = false;
-          });
+        this.$axios.get(`/api/photo/${id}`).then(response => {
+          if (response.data.code === 1) {
+            this.photo = response.data.msg;
+            this.cached_photo[id] = response.data.msg;
+          } else {
+            alert(response.data.msg);
+          }
+          this.loading = false;
+        });
       }
     },
     toggleLike: function(way, item) {
@@ -95,9 +93,7 @@ export default {
       item.likes = item.liked ? item.likes - 1 : item.likes + 1;
       // 先把样式改了
       item.liked = item.liked ? false : true;
-      let url = `http://192.168.1.7:8000/api/photo/likes?way=${way}&id=${
-        item.id
-      }&aor=${aor}`;
+      let url = `/api/photo/likes?way=${way}&id=${item.id}&aor=${aor}`;
       this.$axios
         .get(url)
         .then(response => {

@@ -99,17 +99,15 @@ export default {
     getBlog: function(id) {
       if (id !== undefined) {
         this.loading = true;
-        this.$axios
-          .get(`http://192.168.1.7:8000/api/blog/${id}`)
-          .then(response => {
-            if (response.data.code === 1) {
-              this.blog = response.data.msg;
-              this.cached_blogs[id] = response.data.msg;
-            } else {
-              alert(response.data.msg);
-            }
-            this.loading = false;
-          });
+        this.$axios.get(`/api/blog/${id}`).then(response => {
+          if (response.data.code === 1) {
+            this.blog = response.data.msg;
+            this.cached_blogs[id] = response.data.msg;
+          } else {
+            alert(response.data.msg);
+          }
+          this.loading = false;
+        });
       }
     },
     blogEdit: function(blog) {
@@ -121,16 +119,14 @@ export default {
         alert("抱歉，你无权删除");
       } else {
         if (confirm("确定删除这篇博客吗？")) {
-          this.$axios
-            .get(`http://192.168.1.7:8000/api/blog/${blog_id}/delete`)
-            .then(response => {
-              if (response.data.code === 1) {
-                delete this.cached_blogs[blog_id];
-                this.$emit("blogDeleteDone", blog_id);
-              } else {
-                alert(response.data.msg);
-              }
-            });
+          this.$axios.get(`/api/blog/${blog_id}/delete`).then(response => {
+            if (response.data.code === 1) {
+              delete this.cached_blogs[blog_id];
+              this.$emit("blogDeleteDone", blog_id);
+            } else {
+              alert(response.data.msg);
+            }
+          });
         }
       }
     },
@@ -140,9 +136,7 @@ export default {
       item.likes = item.liked ? item.likes - 1 : item.likes + 1;
       // 先把样式改了
       item.liked = item.liked ? false : true;
-      let url = `http://192.168.1.7:8000/api/blog/likes?way=${way}&id=${
-        item.id
-      }&aor=${aor}`;
+      let url = `/api/blog/likes?way=${way}&id=${item.id}&aor=${aor}`;
       this.$axios
         .get(url)
         .then(response => {
