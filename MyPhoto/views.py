@@ -1,6 +1,7 @@
 import time
 import os
 import json
+from PIL import Image
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
@@ -11,6 +12,7 @@ from Notification.views import add_notification
 from Tag.models import Tag
 
 from .models import Photo, PhotoReply, PhotoSubReply
+from MyHome.settings import MEDIA_ROOT
 from MyHome.utils import get_redis, get_uuid_base64, ConvertTime
 from django.core import exceptions
 from django.core.cache import cache
@@ -188,12 +190,16 @@ class PhotoUpload(View):
             return JsonResponse({'code': 3, 'msg': '上传失败，文件类型错误'})
 
         file_name = '{}_photo_{}_{}'.format(
-            request.user.username, time.time(), photo.name)
+            request.user.username, time.time(), photo.name.replace(' ', ''))
 
         fs = FileSystemStorage()
         fs.save(file_name, photo)
-        file_path = os.path.join(
-            os.getcwd(), 'media', file_name).replace('\\', '/')
+        file_path = os.path.join(MEDIA_ROOT, file_name)
+
+        # compress the image
+        i = Image.open(file_path)
+        i.thumbnail((1280, 1280))
+        i.save(file_path)
 
         access_key = 'M2TrolxfManTFNP4Clr3M12JW0tvAaCV0xIbrZk5'
         secret_key = 'Llh0byt0KDHwiFlcNVvPiTpQSrH8IrZSt5puu1zS'
@@ -223,7 +229,7 @@ class PhotoUpload(View):
                     pass
 
             # 更新图片地址
-            url = 'http://pkuk9xor9.bkt.clouddn.com/{}'.format(file_name)
+            url = 'http://pmdzl4fju.bkt.clouddn.com/{}'.format(file_name)
 
             # 刷新缓存
             cdn_manager = CdnManager(q)
@@ -253,7 +259,7 @@ class PhotoAndReplyLikes(View):
                 photo = Photo.objects.filter(pk=identity).first()
                 action = 'photolike'
                 to_user_id = photo.author_id
-                body = '{}给你的发表的图片点了个赞'.format(
+                body = '{}给你发表的图片点了个赞'.format(
                     request.user.last_name)
                 app = 'photo:{}'.format(photo.id)
             else:

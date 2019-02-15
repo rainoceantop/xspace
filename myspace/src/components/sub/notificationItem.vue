@@ -8,7 +8,22 @@
       >
     </router-link>
     <router-link
-      :to="{name: getApp(notification), params: {photoid: getId(notification), blogid: getId(notification)}}"
+      v-if="notification.app.split(':')[0] === 'photo'"
+      :to="{name: 'photoInfoPage', params: {photoid: getId(notification)}}"
+    >
+      <span :class="[mobile ? '' : 'title']">{{ notification.body }}</span>
+      <p class="time">{{ notification.created_at }}</p>
+    </router-link>
+    <router-link
+      v-if="notification.app.split(':')[0] ===  'blog'"
+      :to="{name: 'blogInfoPage', params: {blogid: getId(notification)}}"
+    >
+      <span :class="[mobile ? '' : 'title']">{{ notification.body }}</span>
+      <p class="time">{{ notification.created_at }}</p>
+    </router-link>
+    <router-link
+      v-if="notification.app.split(':')[0] ===  'user'"
+      :to="{name: 'myspace', params: {id: getId(notification)}}"
     >
       <span :class="[mobile ? '' : 'title']">{{ notification.body }}</span>
       <p class="time">{{ notification.created_at }}</p>
@@ -23,11 +38,6 @@ export default {
     mobile: false
   },
   methods: {
-    getApp: function(notification) {
-      if (notification.app.split(":")[0] === "photo") return "photoInfoPage";
-      if (notification.app.split(":")[0] === "blog") return "blogInfoPage";
-      return "photoInfo";
-    },
     getId: function(notification) {
       return notification.app.split(":")[1];
     }

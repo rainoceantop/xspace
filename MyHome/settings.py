@@ -26,7 +26,8 @@ SECRET_KEY = '9zv_764!vzupjyd%y%cpp3-&d=r&i^8-5)^l69c^u-kfv*fhg#'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '192.168.1.7'
+    'henji.xyz',
+    'www.henji.xyz'
 ]
 
 
@@ -87,9 +88,9 @@ WSGI_APPLICATION = 'MyHome.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'myhome',
+        'NAME': 'henji',
         'USER': 'root',
-        'PASSWORD': '',
+        'PASSWORD': 'henji#123',
         'HOST': '127.0.0.1',
         'PORT': '3306',
 
@@ -107,13 +108,6 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
         },
-    },
-    'loggers': {
-        'django.db.backends': {
-            'handlers': ['console'],
-            'propagate': True,
-            'level': 'DEBUG',
-        },
     }
 }
 CACHES = {
@@ -122,7 +116,7 @@ CACHES = {
         "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "PASSWORD": "mysecret"
+            "PASSWORD": ""
         }
     }
 }
@@ -165,6 +159,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -173,6 +168,7 @@ MEDIA_URL = '/media/'
 EMAIL_HOST = 'smtp.163.com'
 EMAIL_HOST_USER = 'jessensl77@163.com'
 EMAIL_HOST_PASSWORD = 'xspace520'
+EMAIL_PORT = 465
 EMAIL_SSL = True
 EMAIL_TLS = False
 

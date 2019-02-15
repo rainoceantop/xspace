@@ -2,7 +2,7 @@
   <div class="container info-wrap">
     <section class="panel">
       <form @submit.prevent>
-        <header>Xspace</header>
+        <header>痕·迹</header>
         <div :class="['form-item',usernameOnInput]">
           <label>用户名</label>
           <input type="text" v-model="username">

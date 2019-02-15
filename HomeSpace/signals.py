@@ -11,4 +11,4 @@ def create_user_detail(sender, instance, created, **kwargs):
         redis = get_redis()
         redis_key = 'user:{}:detail'.format(user.username)
         redis.hmset(
-            redis_key, {'username': user.username, 'nickname': user.last_name, 'avatar': 'http://pkfzvu3bh.bkt.clouddn.com/default.jpg', 'bio': '', 'website': '', 'private': 0})
+            redis_key, {'username': user.username, 'nickname': user.last_name, 'avatar': 'http://pmdz71py1.bkt.clouddn.com/default.jpg', 'bio': '', 'website': '', 'private': 0})

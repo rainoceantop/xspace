@@ -126,6 +126,7 @@ export default {
 
 
 <style lang="scss" scoped>
+@import "../assets/scss/config";
 .form-item {
   display: flex;
   flex-direction: row;
@@ -154,6 +155,17 @@ export default {
       font-size: 15px;
       min-height: 100px;
       resize: vertical;
+    }
+  }
+}
+
+@include mediaSm {
+  .form-item {
+    flex-direction: column;
+    .label,
+    .input {
+      text-align: start;
+      width: 100%;
     }
   }
 }

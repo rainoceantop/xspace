@@ -94,6 +94,7 @@ export default {
 
 
 <style lang="scss" scoped>
+@import "../assets/scss/config";
 .form-item {
   display: flex;
   flex-direction: row;
@@ -113,6 +114,16 @@ export default {
       border: none;
       height: auto !important;
       padding: 8px;
+    }
+  }
+}
+@include mediaSm {
+  .form-item {
+    flex-direction: column;
+    .label,
+    .input {
+      text-align: start;
+      width: 100%;
     }
   }
 }

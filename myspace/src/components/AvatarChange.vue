@@ -13,6 +13,7 @@
             ref="uploadAvatar"
             class="input-file"
             type="file"
+            accept="image/*"
             @change="changeAvatar($event)"
           >
         </button>
@@ -38,6 +39,12 @@ export default {
       this.onUpload = true;
       this.uploadLabel = "上传中...";
       const avatar = event.target.files[0];
+      if (avatar.size > 15000000) {
+        alert("文件过大！上传文件不得超过15M");
+        this.onUpload = false;
+        this.uploadLabel = "重新上传";
+        return;
+      }
       let formData = new FormData();
       formData.append("avatar", avatar);
       this.$axios({
@@ -64,6 +71,7 @@ export default {
 
 
 <style lang="scss" scoped>
+@import "../assets/scss/config";
 .form-item {
   display: flex;
   flex-direction: row;
@@ -86,6 +94,17 @@ export default {
   }
   .input-file {
     display: none;
+  }
+}
+
+@include mediaSm {
+  .form-item {
+    flex-direction: column;
+    .label,
+    .input {
+      text-align: start;
+      width: 100%;
+    }
   }
 }
 </style>

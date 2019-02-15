@@ -2,7 +2,7 @@
 @import "config";
 .info {
   width: 100%;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 64px);
   position: relative;
   display: flex;
   justify-content: center;
@@ -106,7 +106,13 @@
 }
 
 @include mediaSm{
+  .the-photo{
+    bottom: 50px;
+  }
+  .info{
+    height: calc(100vh - 56px);
+  }
   .caption{
-    padding: 1em .5em 1em .5em;;
+    padding: 1em .5em 1em .5em;
   }
 }

@@ -65,28 +65,27 @@ export default {
       }&page=${this.page + 1}`;
       this.$axios.get(url).then(response => {
         if (response.data.code === 1) {
-          if (response.data.msg.length !== 0) {
-            this.page++;
-            let items = response.data.msg.sort(this.sortExplores);
-            if (!fresh) {
-              for (let item of items) {
-                item["cover"] = false;
-                this.explores.push(item);
-              }
-              this.loading = false;
-            } else {
-              for (let item of items) {
-                item["cover"] = false;
-              }
-              this.explores = items;
-              this.tags_cached[this.tagname] = items;
-              this.tags_cached[this.tagname]["end"] = false;
+          this.page++;
+          let items = response.data.msg.sort(this.sortExplores);
+          if (!fresh) {
+            for (let item of items) {
+              item["cover"] = false;
+              this.explores.push(item);
             }
-            this.tags_cached[this.tagname]["page"] = this.page;
             this.loading = false;
           } else {
+            for (let item of items) {
+              item["cover"] = false;
+            }
+            this.explores = items;
+            this.tags_cached[this.tagname] = items;
+            this.end = false;
+            this.tags_cached[this.tagname]["end"] = false;
+          }
+          this.tags_cached[this.tagname]["page"] = this.page;
+          this.loading = false;
+          if (items.length === 0) {
             this.end = true;
-            this.loading = false;
             this.tags_cached[this.tagname]["end"] = true;
           }
         } else alert(response.data.msg);
@@ -115,7 +114,7 @@ export default {
         let scrollT = e.target.documentElement.scrollTop;
         let scrollH = e.target.documentElement.scrollHeight;
         let screenH = e.target.documentElement.clientHeight;
-        if (scrollT + screenH + 300 > scrollH) {
+        if (scrollT + screenH + 50 === scrollH) {
           if (this.end === false && this.loading === false) {
             this.loading = true;
             this.getExplores(false);

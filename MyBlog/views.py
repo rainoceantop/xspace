@@ -11,6 +11,8 @@ from MyHome.utils import ConvertTime, get_redis, get_uuid_base64
 from Notification.views import add_notification
 from Notification.models import Notification
 from Tag.models import Tag
+from PIL import Image
+from MyHome.settings import MEDIA_ROOT
 import json
 import re
 import time
@@ -179,14 +181,18 @@ class BlogFileUpload(View):
         file_name = '{}_{}'.format(str(time.time()), blog_file.name)
         fs = FileSystemStorage()
         fs.save(file_name, blog_file)
-        file_path = os.path.join(
-            os.getcwd(), 'media', file_name).replace('\\', '/')
+        file_path = os.path.join(MEDIA_ROOT, file_name)
+
+        # compress the image
+        i = Image.open(file_path)
+        i.thumbnail((1280, 1280))
+        i.save(file_path)
 
         access_key = 'M2TrolxfManTFNP4Clr3M12JW0tvAaCV0xIbrZk5'
         secret_key = 'Llh0byt0KDHwiFlcNVvPiTpQSrH8IrZSt5puu1zS'
 
         q = qiniu_auth(access_key, secret_key)
-        bucket_name = 'blog2'
+        bucket_name = 'blog'
 
         try:
             token = q.upload_token(bucket_name, file_name, 3600)
@@ -197,7 +203,7 @@ class BlogFileUpload(View):
             return JsonResponse({'uploaded': False, 'msg': '上传文件出错'})
         finally:
             fs.delete(file_name)
-            return JsonResponse({'uploaded': True, 'url': 'http://pldd64kvs.bkt.clouddn.com/{}'.format(file_name)})
+            return JsonResponse({'uploaded': True, 'url': 'http://pmdzkdatv.bkt.clouddn.com/{}'.format(file_name)})
 
 
 class BlogReplyGet(View):

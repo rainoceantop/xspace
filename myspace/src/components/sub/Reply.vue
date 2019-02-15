@@ -1,33 +1,35 @@
 <template>
   <div class="reply-area">
-    <section class="replying">
-      <img class="avatar-sm" :src="$store.state.avatar" alt>
-      <div
-        ref="replyInput"
-        contenteditable="true"
-        @input="replyInput"
-        class="reply-input"
-        v-on:blur="replyInputOnFocus=false"
-        v-on:focus="replyInputOnFocus=true; firstFocus=true"
-        placeholder="评论点什么"
-      ></div>
-    </section>
-    <div :class="replyInputOnFocus ? 'progess-bar-1': 'progess-bar-0'"></div>
+    <div v-if="$store.state.login">
+      <section class="replying">
+        <img class="avatar-sm" :src="$store.state.avatar" alt>
+        <div
+          ref="replyInput"
+          contenteditable="true"
+          @input="replyInput"
+          class="reply-input"
+          v-on:blur="replyInputOnFocus=false"
+          v-on:focus="replyInputOnFocus=true; firstFocus=true"
+          placeholder="评论点什么"
+        ></div>
+      </section>
+      <div :class="replyInputOnFocus ? 'progess-bar-1': 'progess-bar-0'"></div>
 
-    <section v-if="firstFocus" class="reply-button animated fadeIn">
-      <span class="cancel" @click="replyCancel">取消</span>
-      <input
-        v-show="!replyOnSubmit"
-        class="button-style"
-        :disabled="this.replyInputValue.trim().length === 0"
-        type="button"
-        value="评论"
-        @click="replySubmit"
-      >
-      <button v-show="replyOnSubmit" class="button-style" disabled>
-        <font-awesome-icon :icon="['fas', 'spinner']" spin/>
-      </button>
-    </section>
+      <section v-if="firstFocus" class="reply-button animated fadeIn">
+        <span class="cancel" @click="replyCancel">取消</span>
+        <input
+          v-show="!replyOnSubmit"
+          class="button-style"
+          :disabled="this.replyInputValue.trim().length === 0"
+          type="button"
+          value="评论"
+          @click="replySubmit"
+        >
+        <button v-show="replyOnSubmit" class="button-style" disabled>
+          <font-awesome-icon :icon="['fas', 'spinner']" spin/>
+        </button>
+      </section>
+    </div>
 
     <div class="reply-list">
       <div
@@ -62,7 +64,7 @@
               </span>
               <span class="like-count">{{ reply.likes }}</span>
             </div>
-            <div>
+            <div v-if="$store.state.login">
               <span class="reply-reply-button" @click="replyreplyBegin($event, reply)">回复</span>
               <span
                 v-if="reply.from_user_id === $store.state.id"
@@ -147,7 +149,7 @@
                     </span>
                     <span class="like-count">{{ sub_reply.likes }}</span>
                   </div>
-                  <div>
+                  <div v-if="$store.state.login">
                     <span class="reply-reply-button" @click="replyreplyBegin($event, sub_reply)">回复</span>
                     <span
                       v-if="sub_reply.from_user_id === $store.state.id"

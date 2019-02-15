@@ -144,6 +144,12 @@ export default {
       this.onUpload = true;
       this.uploadLabel = "上传中...";
       const photo = event.target.files[0];
+      if (photo.size > 15000000) {
+        alert("文件过大！上传文件不得超过15M");
+        this.onUpload = false;
+        this.uploadLabel = "重新上传";
+        return;
+      }
       let formData = new FormData();
       formData.append("photo", photo);
       this.$axios({
@@ -153,16 +159,22 @@ export default {
         headers: {
           "Content-Type": "multipart/form-data"
         }
-      }).then(response => {
-        this.onUpload = false;
-        this.uploadLabel = "更换图片";
+      })
+        .then(response => {
+          this.onUpload = false;
+          this.uploadLabel = "更换图片";
 
-        if (response.data.code === 1) {
-          this.photoUrl = response.data.msg;
-        } else {
-          alert(response.data.msg);
-        }
-      });
+          if (response.data.code === 1) {
+            this.photoUrl = response.data.msg;
+          } else {
+            alert(response.data.msg);
+          }
+        })
+        .catch(error => {
+          this.onUpload = false;
+          this.uploadLabel = "重新上传";
+          alert("上传失败：" + error);
+        });
     },
     addTag: function(tag) {
       this.tag = "";
@@ -265,7 +277,8 @@ export default {
     }
     .display-photo {
       img {
-        max-width: 100%;
+        width: 100%;
+        height: 100%;
       }
     }
   }

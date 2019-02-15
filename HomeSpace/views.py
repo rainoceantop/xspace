@@ -9,17 +9,19 @@ from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Q, F, Count, Sum
 from itertools import chain
-
+from Notification.views import add_notification
 from MyBlog.models import Blog
 from MyPhoto.models import Photo
 from Tag.models import Tag
 from datetime import datetime, timedelta
+from PIL import Image
 import json
 import re
 import os
 import time
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 from django.core import exceptions
+from MyHome.settings import MEDIA_ROOT
 from MyHome.utils import get_redis, ConvertTime
 from qiniu import Auth as qiniu_auth
 from qiniu import put_file, etag, BucketManager, CdnManager
@@ -250,11 +252,28 @@ class UserFollow(View):
             if int(redis.hget("user:{}:detail".format(identity), 'private').decode()):
                 redis.sadd("user:{}:followRequests".format(
                     identity), request.user.username)
+                add_notification(
+                    one_or_many='one',
+                    from_user_id=request.user.username,
+                    to_user_id=identity,
+                    action='follow',
+                    body='{}请求关注你'.format(request.user.last_name),
+                    app='user:{}'.format(request.user.username)
+                )
             else:
                 redis.sadd("user:{}:follows".format(
                     request.user.username), identity)
                 redis.sadd("user:{}:fans".format(
                     identity), request.user.username)
+                add_notification(
+                    one_or_many='one',
+                    from_user_id=request.user.username,
+                    to_user_id=identity,
+                    action='follow',
+                    body='{}关注了你'.format(request.user.last_name),
+                    app='user:{}'.format(request.user.username)
+                )
+                
         if fOrUnf == 'unfollow':
             redis.srem("user:{}:follows".format(
                 request.user.username), identity)
@@ -384,8 +403,12 @@ class ChangeAvatar(View):
             request.user.username, time.time(), avatar_file.name)
         fs = FileSystemStorage()
         fs.save(file_name, avatar_file)
-        file_path = os.path.join(
-            os.getcwd(), 'media', file_name).replace('\\', '/')
+        file_path = os.path.join(MEDIA_ROOT, file_name)
+
+        # compress the image
+        i = Image.open(file_path)
+        i.thumbnail((300, 300))
+        i.save(file_path)
 
         access_key = 'M2TrolxfManTFNP4Clr3M12JW0tvAaCV0xIbrZk5'
         secret_key = 'Llh0byt0KDHwiFlcNVvPiTpQSrH8IrZSt5puu1zS'
@@ -408,7 +431,7 @@ class ChangeAvatar(View):
             used_avatar = redis.hget('user:{}:detail'.format(
                 request.user.username), 'avatar').decode()
 
-            if used_avatar != 'http://pm12un9mb.bkt.clouddn.com/default.jpg':
+            if used_avatar != 'http://pmdz71py1.bkt.clouddn.com/default.jpg':
                 try:
                     bucket = BucketManager(q)
                     key = os.path.basename(used_avatar)
@@ -418,7 +441,7 @@ class ChangeAvatar(View):
                     pass
 
             # 更新头像地址
-            url = 'http://pm12un9mb.bkt.clouddn.com/{}'.format(file_name)
+            url = 'http://pmdz71py1.bkt.clouddn.com/{}'.format(file_name)
             redis.hset('user:{}:detail'.format(
                 request.user.username), 'avatar', url)
 
@@ -486,10 +509,11 @@ class UpdateDetail(View):
         if len(firstname) > 30:
             return JsonResponse({'code': 6, 'msg': '姓名长度超出区间范围[1-30]'})
 
-        if len(email) > 0 or len(firstname) > 0:
+        if len(email) > 0 or len(firstname) > 0 or len(nickname) > 0:
             user = User.objects.get(pk=request.user.id)
             user.email = email
             user.first_name = firstname
+            user.last_name = nickname
             user.save()
         return JsonResponse({'code': 1, 'msg': '更新成功'})
 
@@ -550,9 +574,9 @@ class GetExplores(View):
         # 探索
         if not tag:
             photos = Photo.objects.annotate(replies_count=Count(
-                'replies', distinct=True) + Count('sub_replies', distinct=True))[p_from_index:p_from_index+12]
+                'replies', distinct=True) + Count('sub_replies', distinct=True)).filter(~Q(author_id=request.user.username))[p_from_index:p_from_index+12]
             blogs = Blog.objects.annotate(replies_count=Count(
-                'replies', distinct=True) + Count('sub_replies', distinct=True))[b_from_index:b_from_index+6]
+                'replies', distinct=True) + Count('sub_replies', distinct=True)).filter(~Q(author_id=request.user.username))[b_from_index:b_from_index+6]
         else:
             photos = Photo.objects.annotate(replies_count=Count(
                 'replies', distinct=True) + Count('sub_replies', distinct=True)).filter(tags__name=tag)[p_from_index:p_from_index+12]

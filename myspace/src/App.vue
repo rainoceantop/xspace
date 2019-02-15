@@ -9,7 +9,13 @@
           </a>
           <div class="brand-replace hide-on-med-and-down"></div>
           <div class="search-area input-field hide-on-med-and-down">
-            <input type="text" v-model="searchText" placeholder="搜索" v-on:input="searchChange()">
+            <input
+              type="text"
+              v-model="searchText"
+              placeholder="搜索"
+              maxlength="20"
+              v-on:input="searchChange()"
+            >
             <div class="result-list" v-if="ss">
               <div v-if="searchResults.length > 0">
                 <div v-for="result in searchResults" :key="result.id" class="result-item">
@@ -114,10 +120,20 @@
       </nav>
     </div>
     <ul class="sidenav collapsible" id="mobile-nav">
+      <div class="user-avatar center" v-if="$store.state.login">
+        <router-link
+          @click.native="hideNotification()"
+          :to="{name: 'myspace', params: {id: $store.state.id}}"
+        >
+          <img class="avatar-bg" :src="$store.state.avatar" :alt="$store.state.nickname + '的头像'">
+          <div class="grey-text">{{ $store.state.nickname }}</div>
+        </router-link>
+      </div>
       <li class="search-area input-field">
         <input
           type="text"
           v-model="searchText"
+          maxlength="20"
           placeholder="搜索（以#开头搜索标签）"
           v-on:input="searchChange()"
         >
@@ -196,18 +212,13 @@
         </div>
       </li>
 
-      <li v-if="$store.state.login">
-        <router-link
-          @click.native="hideNotification()"
-          :to="{name: 'myspace', params: {id: $store.state.id}}"
-        >
-          <i class="material-icons">account_circle</i>我的空间
-        </router-link>
-      </li>
       <li v-if="!$store.state.login">
         <router-link :to="{name: 'login'}">
           <i class="material-icons">person_outline</i>用户登录
         </router-link>
+      </li>
+      <li class="mobile-footer center">
+        <span>&copy;痕迹</span>
       </li>
     </ul>
     <main id="main">
@@ -229,14 +240,23 @@
           </li>
         </ul>
       </div>
-      <div style="margin-right:10px;">&copy; Xspace</div>
+      <div style="margin-right:10px;">
+        <span>&copy;痕迹</span>
+      </div>
+      <div>
+        <a
+          class="grey-text"
+          target="_blank"
+          href="http://www.miitbeian.gov.cn/"
+        >ICP备案号：粤ICP备19015378号-1</a>
+      </div>
     </footer>
   </main>
 </template>
 
 <script>
-import notificationItem from "./components/sub/notificationItem";
 import M from "materialize-css";
+import notificationItem from "./components/sub/notificationItem";
 
 document.addEventListener("DOMContentLoaded", function() {
   var sidenav = document.querySelectorAll(".sidenav");
@@ -272,13 +292,11 @@ export default {
   },
   methods: {
     getNotifyCount: function() {
-      this.$axios
-        .get("/api/notification/getNotifyCount")
-        .then(response => {
-          if (response.data.code === 1) {
-            this.notify_count = response.data.msg;
-          }
-        });
+      this.$axios.get("/api/notification/getNotifyCount").then(response => {
+        if (response.data.code === 1) {
+          this.notify_count = response.data.msg;
+        }
+      });
     },
     hideNotification: function() {
       if (this.sn) this.sn = false;
@@ -290,25 +308,28 @@ export default {
         this.sn = false;
       } else {
         this.sn = true;
-        this.notify_loading = true;
         this.getNotifications();
       }
     },
     getNotifications: function() {
+      this.notify_loading = true;
       this.$axios
-        .get("http://192.168.1.7:8000/api/notification/getNotifications")
+        .get("/api/notification/getNotifications")
         .then(response => {
           if (response.data.code === 1) {
             this.notifications = response.data.msg;
             this.notify_count = 0;
             this.notify_loading = false;
           }
+        })
+        .catch(error => {
+          console.log(error);
         });
     },
     deleteNotifications: function() {
       if (this.notifications.length > 0) {
         this.$axios
-          .get("http://192.168.1.7:8000/api/notification/deleteNotifications")
+          .get("/api/notification/deleteNotifications")
           .then(response => {
             if (response.data.code === 1) {
               this.notifications = [];
@@ -324,12 +345,10 @@ export default {
         let searchText = this.searchText;
         if (this.searchCache[searchText] === undefined) {
           this.searchType = "user";
-          let url = `http://192.168.1.7:8000/api/homespace/searchUsers?beginWith=${searchText}`;
+          let url = `/api/homespace/searchUsers?beginWith=${searchText}`;
           if (searchText[0] === "#") {
             this.searchType = "tag";
-            url = `http://192.168.1.7:8000/api/tag/searchTags?beginWith=${searchText.substring(
-              1
-            )}`;
+            url = `/api/tag/searchTags?beginWith=${searchText.substring(1)}`;
           }
           if (this.searchType === "user" || searchText.length > 1) {
             this.$axios.get(url).then(response => {
@@ -388,6 +407,10 @@ input {
   margin-left: 0.5em;
 }
 .sidenav {
+  .user-avatar {
+    padding-top: 24px;
+  }
+  overflow-x: hidden !important;
   .collapsible-header {
     height: 48px !important;
     line-height: 48px !important;
@@ -409,6 +432,11 @@ input {
       }
     }
   }
+  .mobile-footer {
+    width: 100%;
+    color: $gray;
+    font-size: 13px;
+  }
 }
 .go-follow {
   background-color: $blue;
@@ -418,6 +446,9 @@ input {
 }
 body {
   background-color: $main-color;
+}
+strong {
+  font-weight: bold;
 }
 #app {
   font-family: "Noto Sans SC", roboto, HelveticaNeue, Helvetica, Arial,
@@ -453,7 +484,7 @@ body {
     top: 60px;
     width: 280px;
     max-height: 500px;
-    overflow-y: scroll;
+    overflow-y: auto;
     background-color: $main-color;
     border: 1px solid $lightgray;
     z-index: 1001;
@@ -526,8 +557,8 @@ body {
 }
 
 .notification-display {
-  width: 450px;
-  height: 600px;
+  width: 400px;
+  height: 500px;
   background-color: $main-color;
   position: absolute;
   top: 60px;
