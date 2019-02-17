@@ -203,7 +203,7 @@ class BlogFileUpload(View):
             return JsonResponse({'uploaded': False, 'msg': '上传文件出错'})
         finally:
             fs.delete(file_name)
-            return JsonResponse({'uploaded': True, 'url': 'http://pmdzkdatv.bkt.clouddn.com/{}'.format(file_name)})
+            return JsonResponse({'uploaded': True, 'url': 'http://blog.cdn.henji.xyz/{}'.format(file_name)})
 
 
 class BlogReplyGet(View):

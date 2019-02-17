@@ -321,7 +321,7 @@ class ChangePasswordByEmail(View):
         if user:
             uid = urlsafe_b64encode(user.username.encode()).decode()
             token = default_token_generator.make_token(user)
-            url = 'http://192.168.1.7:8080/accounts/password/reset/confirm/{}/{}'.format(
+            url = 'http://henji.xyz/accounts/password/reset/confirm/{}/{}'.format(
                 uid, token)
             r = send_mail(
                 'Xspace',
@@ -330,8 +330,6 @@ class ChangePasswordByEmail(View):
                 [user.email],
                 fail_silently=False
             )
-            print(user.email)
-            print(r)
             return JsonResponse({'code': 1, 'msg': '发送成功'})
 
         return JsonResponse({'code': 2, 'msg': '出错，未查询到相关账号'})
@@ -431,7 +429,7 @@ class ChangeAvatar(View):
             used_avatar = redis.hget('user:{}:detail'.format(
                 request.user.username), 'avatar').decode()
 
-            if used_avatar != 'http://pmdz71py1.bkt.clouddn.com/default.jpg':
+            if used_avatar != 'http://avatar.cdn.henji.xyz/default.jpg':
                 try:
                     bucket = BucketManager(q)
                     key = os.path.basename(used_avatar)
@@ -441,9 +439,9 @@ class ChangeAvatar(View):
                     pass
 
             # 更新头像地址
-            url = 'http://pmdz71py1.bkt.clouddn.com/{}'.format(file_name)
+            url = 'http://avatar.cdn.henji.xyz/{}'.format(file_name)
             redis.hset('user:{}:detail'.format(
-                request.user.username), 'avatar', url)
+                request.user.username), 'avatar', "{}-avatar".format(url))
 
             # 刷新缓存
             cdn_manager = CdnManager(q)
@@ -530,9 +528,9 @@ class GetMoments(View):
         follows = [follow.decode() for follow in follows]
         follows.append(request.user.username)
         photos = Photo.objects.annotate(replies_count=Count(
-            'replies')).filter(author_id__in=follows).filter(created_at__gte=datetime.now()-timedelta(days=7)).prefetch_related('tags')
+            'replies')).filter(author_id__in=follows).filter(created_at__gte=datetime.now()-timedelta(days=15)).prefetch_related('tags')
         blogs = Blog.objects.annotate(replies_count=Count(
-            'replies')).filter(author_id__in=follows).filter(created_at__gte=datetime.now()-timedelta(days=7)).prefetch_related('tags')
+            'replies')).filter(author_id__in=follows).filter(created_at__gte=datetime.now()-timedelta(days=15)).prefetch_related('tags')
         moments = sorted(chain(photos, blogs), key=lambda instance: instance.created_at, reverse=True)
         items = []
         for r in moments:

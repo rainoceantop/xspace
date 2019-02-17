@@ -229,7 +229,7 @@ class PhotoUpload(View):
                     pass
 
             # 更新图片地址
-            url = 'http://pmdzl4fju.bkt.clouddn.com/{}'.format(file_name)
+            url = 'http://photo.cdn.henji.xyz/{}'.format(file_name)
 
             # 刷新缓存
             cdn_manager = CdnManager(q)
